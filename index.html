@@ -7,7 +7,14 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
     <style>
-        .fc-event { cursor: pointer; padding: 2px; font-size: 0.85em; }
+        /* Permite quebra de linha e ajuste de leitura no calendário */
+        .fc-event-title { 
+            white-space: normal !important; 
+            display: block !important;
+            line-height: 1.2;
+            padding: 2px 0;
+        }
+        .fc-event { cursor: pointer; padding: 2px; font-size: 0.85em; margin-bottom: 1px !important; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         .admin-only { display: none !important; }
@@ -40,7 +47,7 @@
         </section>
 
         <section id="mensal" class="tab-content">
-            <h2 class="text-xl font-bold mb-4 text-gray-800">Próximas Escalas (Ordem Cronológica)</h2>
+            <h2 class="text-xl font-bold mb-4 text-gray-800">Próximas Escalas</h2>
             <div id="listaEscalas" class="grid gap-3"></div>
         </section>
 
@@ -70,6 +77,10 @@
                     </select>
                 </div>
                 <div>
+                    <label class="text-sm font-bold text-gray-600">Nome da Escala (Ex: Culto de Mulheres, Batismo)</label>
+                    <input id="tituloEscala" type="text" placeholder="Ex: Santa Ceia" class="border p-2 rounded-lg w-full">
+                </div>
+                <div>
                     <label class="text-sm font-bold text-gray-600">Membro Escalado</label>
                     <select id="selectMembros" class="border p-2 rounded-lg w-full"></select>
                 </div>
@@ -97,7 +108,6 @@
         const db = getFirestore(app);
         let calendar;
         let listaNomesGlobal = [];
-
         const SENHA_ADMIN = "bola123";
 
         window.autenticar = () => {
@@ -140,14 +150,8 @@
         window.showTab = (id) => {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.getElementById(id).classList.add('active');
-            if(id === 'calendario') calendar.render(); 
-        };
-
-        document.getElementById('btnMembro').onclick = async () => {
-            const nome = document.getElementById('nomeMembro').value;
-            if (nome) {
-                await addDoc(collection(db, "membros"), { nome });
-                document.getElementById('nomeMembro').value = '';
+            if(id === 'calendario') {
+                setTimeout(() => calendar.render(), 50);
             }
         };
 
@@ -160,13 +164,8 @@
             snapshot.forEach(d => {
                 const m = d.data().nome;
                 listaNomesGlobal.push(m);
-                listaM.innerHTML += `
-                    <li class="p-3 flex justify-between items-center">
-                        <span class="font-medium text-gray-700">${m}</span>
-                        <button onclick="window.removerMembro('${d.id}')" class="admin-only text-red-500 hover:bg-red-50 px-3 py-1 rounded transition-colors text-sm font-bold">
-                            EXCLUIR
-                        </button>
-                    </li>`;
+                listaM.innerHTML += `<li class="p-3 flex justify-between items-center text-gray-700 font-medium"><span>${m}</span>
+                <button onclick="window.removerMembro('${d.id}')" class="admin-only text-red-500 font-bold hover:bg-red-50 px-2 py-1 rounded">EXCLUIR</button></li>`;
                 selectM.innerHTML += `<option value="${m}">${m}</option>`;
             });
         });
@@ -174,11 +173,13 @@
         document.getElementById('btnEscala').onclick = async () => {
             const data = document.getElementById('dataCulto').value;
             const tipo = document.getElementById('tipoCulto').value;
+            const titulo = document.getElementById('tituloEscala').value || "";
             const responsavel = document.getElementById('selectMembros').value || "VAGO";
             if (data) {
-                await addDoc(collection(db, "escalas"), { data, tipo, responsavel });
+                await addDoc(collection(db, "escalas"), { data, tipo, titulo, responsavel });
+                document.getElementById('tituloEscala').value = "";
                 alert("Escala salva!");
-                showTab('mensal');
+                showTab('calendario');
             }
         };
 
@@ -187,55 +188,57 @@
             const listaE = document.getElementById('listaEscalas');
             listaE.innerHTML = '';
             const calendarEvents = [];
-
             snapshot.forEach(d => {
                 const e = d.data();
                 const dataF = new Date(e.data).toLocaleDateString('pt-BR', {timeZone: 'UTC'});
-                const corStatus = e.responsavel === "VAGO" ? "text-red-600 font-bold" : "text-gray-800";
+                const nomeEventoDesc = e.titulo ? ` - ${e.titulo}` : "";
+                
+                // Exibição na Lista
+                const responsavelDisplay = e.responsavel === "VAGO" 
+                    ? `<span class="text-red-600 font-bold uppercase">${e.responsavel}</span>`
+                    : `<span class="uppercase font-black text-gray-800">${e.responsavel}</span>`;
                 
                 listaE.innerHTML += `
-                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-black flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-black flex justify-between items-center">
                         <div>
-                            <p class="text-xs font-bold text-gray-500">${dataF} - ${e.tipo}</p>
-                            <p class="text-lg font-black uppercase ${corStatus}">${e.responsavel}</p>
+                            <p class="text-xs font-bold text-gray-500">${dataF}${nomeEventoDesc}</p>
+                            <p class="text-sm text-gray-400 italic">${e.tipo}</p>
+                            <p class="text-lg">${responsavelDisplay}</p>
                         </div>
                         <div class="flex gap-2">
-                            <button onclick="window.editarEscala('${d.id}', '${e.responsavel}')" class="admin-only bg-yellow-500 text-white px-3 py-1 rounded text-sm font-bold">EDITAR</button>
-                            <button onclick="window.remover('${d.id}')" class="admin-only bg-red-500 text-white px-3 py-1 rounded text-sm font-bold">EXCLUIR</button>
+                            <button onclick="window.editarEscala('${d.id}', '${e.responsavel}')" class="admin-only bg-yellow-500 text-white px-2 py-1 rounded text-xs font-bold">EDITAR</button>
+                            <button onclick="window.remover('${d.id}')" class="admin-only bg-red-500 text-white px-2 py-1 rounded text-xs font-bold">EXCLUIR</button>
                         </div>
                     </div>`;
 
+                // Título do Calendário: Nome em cima, Escala embaixo
+                const tituloCalendario = e.titulo 
+                    ? `${e.responsavel}\n(${e.titulo})` 
+                    : `${e.responsavel}`;
+
                 calendarEvents.push({
-                    title: `${e.responsavel}`,
+                    title: tituloCalendario,
                     start: e.data,
-                    backgroundColor: e.responsavel === "VAGO" ? "#ef4444" : (e.tipo.includes('Culto') ? '#208609' : '#1e40af'),
+                    backgroundColor: e.responsavel === "VAGO" ? "#ef4444" : "#1e40af",
                     borderColor: 'transparent'
                 });
             });
-
-            if(calendar) {
-                calendar.removeAllEvents();
-                calendar.addEventSource(calendarEvents);
+            if(calendar) { 
+                calendar.removeAllEvents(); 
+                calendar.addEventSource(calendarEvents); 
             }
         });
 
         window.editarEscala = async (id, atual) => {
-            let msg = "Escolha o novo responsável:\n\nOpções disponíveis:\n" + listaNomesGlobal.join(", ") + ", VAGO";
-            const novoResponsavel = prompt(msg, atual);
-            
-            if (novoResponsavel !== null) {
-                const docRef = doc(db, "escalas", id);
-                await updateDoc(docRef, { responsavel: novoResponsavel });
-                alert("Responsável atualizado!");
-            }
+            const novo = prompt("Novo responsável (" + listaNomesGlobal.join(", ") + "):", atual);
+            if (novo !== null) await updateDoc(doc(db, "escalas", id), { responsavel: novo });
         };
 
-        window.remover = async (id) => { 
-            if(confirm("Deseja remover esta escala?")) await deleteDoc(doc(db, "escalas", id)); 
-        };
-
-        window.removerMembro = async (id) => { 
-            if(confirm("Deseja remover este membro da equipe?")) await deleteDoc(doc(db, "membros", id)); 
+        window.remover = async (id) => { if(confirm("Excluir escala?")) await deleteDoc(doc(db, "escalas", id)); };
+        window.removerMembro = async (id) => { if(confirm("Excluir membro?")) await deleteDoc(doc(db, "membros", id)); };
+        document.getElementById('btnMembro').onclick = async () => {
+            const nome = document.getElementById('nomeMembro').value;
+            if (nome) { await addDoc(collection(db, "membros"), { nome }); document.getElementById('nomeMembro').value = ''; }
         };
     </script>
 </body>

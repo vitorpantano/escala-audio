@@ -5,44 +5,68 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Áudio Bola de Neve Sorocaba</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+    <style>
+        .fc-event { cursor: pointer; padding: 2px; font-size: 0.85em; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+    </style>
 </head>
 <body class="bg-gray-100 font-sans">
 
     <header class="bg-black text-white p-6 shadow-lg">
-        <h1 class="text-2xl font-bold text-center">Ministério de Áudio - Sorocaba</h1>
-        <nav class="flex justify-center mt-4 space-x-4">
-            <button onclick="showTab('mensal')" class="hover:text-yellow-500">Escala Mensal</button>
-            <button onclick="showTab('membros')" class="hover:text-yellow-500">Membros</button>
-            <button onclick="showTab('cadastro')" class="hover:text-yellow-500">Criar Escala</button>
+        <h1 class="text-2xl font-bold text-center uppercase tracking-wider">Áudio Bola Sorocaba</h1>
+        <nav class="flex flex-wrap justify-center mt-4 gap-4">
+            <button onclick="showTab('calendario')" class="hover:text-yellow-500 font-bold border-b-2 border-transparent hover:border-yellow-500 transition-all">📅 Calendário</button>
+            <button onclick="showTab('mensal')" class="hover:text-yellow-500 font-bold border-b-2 border-transparent hover:border-yellow-500 transition-all">📋 Lista</button>
+            <button onclick="showTab('membros')" class="hover:text-yellow-500 font-bold border-b-2 border-transparent hover:border-yellow-500 transition-all">👥 Equipe</button>
+            <button onclick="showTab('cadastro')" class="hover:text-yellow-500 font-bold border-b-2 border-transparent hover:border-yellow-500 transition-all">➕ Agendar</button>
         </nav>
     </header>
 
-    <main class="max-w-4xl mx-auto p-6">
-        <section id="mensal" class="tab-content">
-            <h2 class="text-xl font-bold mb-4 text-gray-800">Escala do Mês</h2>
-            <div id="listaEscalas" class="grid gap-4"></div>
-        </section>
-
-        <section id="membros" class="tab-content hidden">
-            <h2 class="text-xl font-bold mb-4 text-gray-800">Equipe</h2>
-            <div class="bg-white p-4 rounded shadow mb-6">
-                <input id="nomeMembro" type="text" placeholder="Nome do integrante" class="border p-2 rounded mr-2 w-64">
-                <button id="btnMembro" class="bg-green-600 text-white px-4 py-2 rounded">Adicionar</button>
+    <main class="max-w-4xl mx-auto p-4 md:p-6">
+        
+        <section id="calendario" class="tab-content active">
+            <div class="bg-white p-4 rounded-xl shadow-md">
+                <div id="calendar"></div>
             </div>
-            <ul id="listaMembros" class="bg-white rounded shadow divide-y"></ul>
         </section>
 
-        <section id="cadastro" class="tab-content hidden">
-            <h2 class="text-xl font-bold mb-4 text-gray-800">Agendar Culto</h2>
-            <div class="bg-white p-6 rounded shadow space-y-4">
-                <input id="dataCulto" type="date" class="border p-2 rounded w-full">
-                <select id="tipoCulto" class="border p-2 rounded w-full">
-                    <option value="Quinta - 20h">Quinta - 20h</option>
-                    <option value="Domingo - 10h">Domingo - 10h</option>
-                    <option value="Domingo - 19h">Domingo - 19h</option>
-                </select>
-                <select id="selectMembros" class="border p-2 rounded w-full"></select>
-                <button id="btnEscala" class="bg-blue-600 text-white px-6 py-2 rounded w-full font-bold">Publicar Escala</button>
+        <section id="mensal" class="tab-content">
+            <h2 class="text-xl font-bold mb-4 text-gray-800">Próximos Cultos</h2>
+            <div id="listaEscalas" class="grid gap-3"></div>
+        </section>
+
+        <section id="membros" class="tab-content">
+            <h2 class="text-xl font-bold mb-4 text-gray-800">Membros do Ministério</h2>
+            <div class="bg-white p-4 rounded-xl shadow-md mb-6 flex gap-2">
+                <input id="nomeMembro" type="text" placeholder="Nome do integrante" class="border p-2 rounded-lg flex-grow">
+                <button id="btnMembro" class="bg-green-600 text-white px-4 py-2 rounded-lg font-bold">Add</button>
+            </div>
+            <ul id="listaMembros" class="bg-white rounded-xl shadow-md divide-y overflow-hidden"></ul>
+        </section>
+
+        <section id="cadastro" class="tab-content">
+            <h2 class="text-xl font-bold mb-4 text-gray-800">Nova Escala</h2>
+            <div class="bg-white p-6 rounded-xl shadow-md space-y-4">
+                <div>
+                    <label class="text-sm font-bold text-gray-600">Data do Culto</label>
+                    <input id="dataCulto" type="date" class="border p-2 rounded-lg w-full">
+                </div>
+                <div>
+                    <label class="text-sm font-bold text-gray-600">Horário/Tipo</label>
+                    <select id="tipoCulto" class="border p-2 rounded-lg w-full">
+                        <option value="Quinta - 20h">Quinta - 20h</option>
+                        <option value="Domingo - 10h">Domingo - 10h</option>
+                        <option value="Domingo - 19h">Domingo - 19h</option>
+                        <option value="Evento Especial">Evento Especial</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-sm font-bold text-gray-600">Membro Escalado</label>
+                    <select id="selectMembros" class="border p-2 rounded-lg w-full"></select>
+                </div>
+                <button id="btnEscala" class="bg-blue-700 text-white px-6 py-3 rounded-xl w-full font-bold shadow-lg">Salvar na Agenda</button>
             </div>
         </section>
     </main>
@@ -52,7 +76,6 @@
         import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc } 
         from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // CONFIGURAÇÃO DO FIREBASE (COLE AQUI O QUE VOCÊ COPIOU NO PASSO 2)
         const firebaseConfig = {
           apiKey: "AIzaSyCeArSQ8R9W8japktjIfdigLkWldcqTyF0",
           authDomain: "escala-audio-bola-de-neve.firebaseapp.com",
@@ -65,14 +88,29 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        let calendar;
 
-        // FUNÇÕES DE NAVEGAÇÃO
+        // INICIALIZAR CALENDÁRIO
+        document.addEventListener('DOMContentLoaded', function() {
+            const calendarEl = document.getElementById('calendar');
+            calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                locale: 'pt-br',
+                headerToolbar: { left: 'prev,next', center: 'title', right: 'today' },
+                buttonText: { today: 'Hoje' },
+                events: []
+            });
+            calendar.render();
+        });
+
+        // NAVEGAÇÃO
         window.showTab = (id) => {
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
-            document.getElementById(id).classList.remove('hidden');
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            if(id === 'calendario') calendar.render(); 
         };
 
-        // MEMBROS: SALVAR E OUVIR EM TEMPO REAL
+        // GERENCIAR MEMBROS
         document.getElementById('btnMembro').onclick = async () => {
             const nome = document.getElementById('nomeMembro').value;
             if (nome) {
@@ -85,22 +123,23 @@
             const listaM = document.getElementById('listaMembros');
             const selectM = document.getElementById('selectMembros');
             listaM.innerHTML = '';
-            selectM.innerHTML = '<option value="">Selecione...</option>';
+            selectM.innerHTML = '<option value="">Selecione o integrante...</option>';
             snapshot.forEach(doc => {
                 const m = doc.data().nome;
-                listaM.innerHTML += `<li class="p-3">${m}</li>`;
+                listaM.innerHTML += `<li class="p-3 flex justify-between"><span>${m}</span></li>`;
                 selectM.innerHTML += `<option value="${m}">${m}</option>`;
             });
         });
 
-        // ESCALAS: SALVAR E OUVIR EM TEMPO REAL
+        // GERENCIAR ESCALAS E CALENDÁRIO
         document.getElementById('btnEscala').onclick = async () => {
             const data = document.getElementById('dataCulto').value;
             const tipo = document.getElementById('tipoCulto').value;
             const responsavel = document.getElementById('selectMembros').value;
             if (data && responsavel) {
                 await addDoc(collection(db, "escalas"), { data, tipo, responsavel });
-                showTab('mensal');
+                alert("Escala salva!");
+                showTab('calendario');
             }
         };
 
@@ -108,21 +147,40 @@
         onSnapshot(qEscalas, (snapshot) => {
             const listaE = document.getElementById('listaEscalas');
             listaE.innerHTML = '';
+            const calendarEvents = [];
+
             snapshot.forEach(d => {
                 const e = d.data();
                 const dataF = new Date(e.data).toLocaleDateString('pt-BR', {timeZone: 'UTC'});
+                
+                // Adicionar na lista lateral
                 listaE.innerHTML += `
-                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-yellow-500 flex justify-between">
+                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-black flex justify-between items-center">
                         <div>
                             <p class="text-xs font-bold text-gray-500">${dataF} - ${e.tipo}</p>
-                            <p class="text-lg font-bold uppercase">${e.responsavel}</p>
+                            <p class="text-lg font-black uppercase text-gray-800">${e.responsavel}</p>
                         </div>
-                        <button onclick="window.remover('${d.id}')" class="text-red-400">Excluir</button>
+                        <button onclick="window.remover('${d.id}')" class="text-red-500 font-bold p-2 hover:bg-red-50 rounded">EXCLUIR</button>
                     </div>`;
+
+                // Adicionar no array do calendário
+                calendarEvents.push({
+                    title: `${e.responsavel} (${e.tipo})`,
+                    start: e.data,
+                    backgroundColor: e.tipo.includes('Domingo') ? '#1e40af' : '#b91c1c', // Azul p/ dom, Vermelho p/ qui
+                    borderColor: 'transparent'
+                });
             });
+
+            if(calendar) {
+                calendar.removeAllEvents();
+                calendar.addEventSource(calendarEvents);
+            }
         });
 
-        window.remover = async (id) => { await deleteDoc(doc(db, "escalas", id)); };
+        window.remover = async (id) => { 
+            if(confirm("Deseja remover esta escala?")) await deleteDoc(doc(db, "escalas", id)); 
+        };
     </script>
 </body>
 </html>

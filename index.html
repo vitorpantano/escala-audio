@@ -10,17 +10,25 @@
         .fc-event { cursor: pointer; padding: 2px; font-size: 0.85em; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
+        /* Esconde elementos de admin por padrão */
+        .admin-only { display: none !important; }
+        body.is-admin .admin-only { display: flex !important; }
+        body.is-admin .admin-only-block { display: block !important; }
     </style>
 </head>
 <body class="bg-gray-100 font-sans">
 
-    <header class="bg-black text-white p-6 shadow-lg">
-        <h1 class="text-2xl font-bold text-center uppercase tracking-wider">Áudio Bola Sorocaba</h1>
+    <header class="bg-black text-white p-6 shadow-lg relative">
+        <button onclick="autenticar()" class="absolute top-4 right-4 text-gray-500 hover:text-yellow-500 text-xs">
+            <span id="lockIcon">🔒 Admin</span>
+        </button>
+
+        <h1 class="text-2xl font-bold text-center uppercase tracking-wider">Ministério de Áudio<br> Bola de Neve Sorocaba</h1>
         <nav class="flex flex-wrap justify-center mt-4 gap-4">
             <button onclick="showTab('calendario')" class="hover:text-yellow-500 font-bold border-b-2 border-transparent hover:border-yellow-500 transition-all">📅 Calendário</button>
             <button onclick="showTab('mensal')" class="hover:text-yellow-500 font-bold border-b-2 border-transparent hover:border-yellow-500 transition-all">📋 Lista</button>
-            <button onclick="showTab('membros')" class="hover:text-yellow-500 font-bold border-b-2 border-transparent hover:border-yellow-500 transition-all">👥 Equipe</button>
-            <button onclick="showTab('cadastro')" class="hover:text-yellow-500 font-bold border-b-2 border-transparent hover:border-yellow-500 transition-all">➕ Agendar</button>
+            <button onclick="showTab('membros')" class="admin-only hover:text-yellow-500 font-bold border-b-2 border-transparent hover:border-yellow-500 transition-all">👥 Equipe</button>
+            <button onclick="showTab('cadastro')" class="admin-only hover:text-yellow-500 font-bold border-b-2 border-transparent hover:border-yellow-500 transition-all">➕ Agendar</button>
         </nav>
     </header>
 
@@ -33,7 +41,7 @@
         </section>
 
         <section id="mensal" class="tab-content">
-            <h2 class="text-xl font-bold mb-4 text-gray-800">Próximos Cultos</h2>
+            <h2 class="text-xl font-bold mb-4 text-gray-800">Próximas Escalas</h2>
             <div id="listaEscalas" class="grid gap-3"></div>
         </section>
 
@@ -50,16 +58,16 @@
             <h2 class="text-xl font-bold mb-4 text-gray-800">Nova Escala</h2>
             <div class="bg-white p-6 rounded-xl shadow-md space-y-4">
                 <div>
-                    <label class="text-sm font-bold text-gray-600">Data do Culto</label>
+                    <label class="text-sm font-bold text-gray-600">Data</label>
                     <input id="dataCulto" type="date" class="border p-2 rounded-lg w-full">
                 </div>
                 <div>
-                    <label class="text-sm font-bold text-gray-600">Horário/Tipo</label>
+                    <label class="text-sm font-bold text-gray-600">Tipo</label>
                     <select id="tipoCulto" class="border p-2 rounded-lg w-full">
-                        <option value="Quinta - 20h">Quinta - 20h</option>
-                        <option value="Domingo - 10h">Domingo - 10h</option>
-                        <option value="Domingo - 19h">Domingo - 19h</option>
-                        <option value="Evento Especial">Evento Especial</option>
+                        <option value="Quinta">Quinta</option>
+                        <option value="Domingo de Manhã">Dommingo Manhã</option>
+                        <option value="Domingo de Noite">Domingo Noite</option>
+                        <option value="Extra">Escala Extra</option>
                     </select>
                 </div>
                 <div>
@@ -90,7 +98,33 @@
         const db = getFirestore(app);
         let calendar;
 
-        // INICIALIZAR CALENDÁRIO
+        const SENHA_ADMIN = "bola123";
+
+        window.autenticar = () => {
+            if (document.body.classList.contains('is-admin')) {
+                if(confirm("Deseja sair do modo edição?")) {
+                    document.body.classList.remove('is-admin');
+                    localStorage.removeItem('isAdmin');
+                    location.reload();
+                }
+                return;
+            }
+            const pass = prompt("Digite a senha para editar:");
+            if (pass === SENHA_ADMIN) {
+                document.body.classList.add('is-admin');
+                localStorage.setItem('isAdmin', 'true');
+                alert("Modo Edição Ativado!");
+                location.reload();
+            } else {
+                alert("Senha incorreta!");
+            }
+        };
+
+        if (localStorage.getItem('isAdmin') === 'true') {
+            document.body.classList.add('is-admin');
+            document.getElementById('lockIcon').innerText = "🔓 Sair Admin";
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             const calendarEl = document.getElementById('calendar');
             calendar = new FullCalendar.Calendar(calendarEl, {
@@ -103,14 +137,12 @@
             calendar.render();
         });
 
-        // NAVEGAÇÃO
         window.showTab = (id) => {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.getElementById(id).classList.add('active');
             if(id === 'calendario') calendar.render(); 
         };
 
-        // GERENCIAR MEMBROS
         document.getElementById('btnMembro').onclick = async () => {
             const nome = document.getElementById('nomeMembro').value;
             if (nome) {
@@ -124,14 +156,19 @@
             const selectM = document.getElementById('selectMembros');
             listaM.innerHTML = '';
             selectM.innerHTML = '<option value="">Selecione o integrante...</option>';
-            snapshot.forEach(doc => {
-                const m = doc.data().nome;
-                listaM.innerHTML += `<li class="p-3 flex justify-between"><span>${m}</span></li>`;
+            snapshot.forEach(d => {
+                const m = d.data().nome;
+                listaM.innerHTML += `
+                    <li class="p-3 flex justify-between items-center">
+                        <span class="font-medium text-gray-700">${m}</span>
+                        <button onclick="window.removerMembro('${d.id}')" class="admin-only text-red-500 hover:bg-red-50 px-3 py-1 rounded transition-colors text-sm font-bold">
+                            EXCLUIR
+                        </button>
+                    </li>`;
                 selectM.innerHTML += `<option value="${m}">${m}</option>`;
             });
         });
 
-        // GERENCIAR ESCALAS E CALENDÁRIO
         document.getElementById('btnEscala').onclick = async () => {
             const data = document.getElementById('dataCulto').value;
             const tipo = document.getElementById('tipoCulto').value;
@@ -153,21 +190,19 @@
                 const e = d.data();
                 const dataF = new Date(e.data).toLocaleDateString('pt-BR', {timeZone: 'UTC'});
                 
-                // Adicionar na lista lateral
                 listaE.innerHTML += `
                     <div class="bg-white p-4 rounded-lg shadow border-l-4 border-black flex justify-between items-center">
                         <div>
                             <p class="text-xs font-bold text-gray-500">${dataF} - ${e.tipo}</p>
                             <p class="text-lg font-black uppercase text-gray-800">${e.responsavel}</p>
                         </div>
-                        <button onclick="window.remover('${d.id}')" class="text-red-500 font-bold p-2 hover:bg-red-50 rounded">EXCLUIR</button>
+                        <button onclick="window.remover('${d.id}')" class="admin-only text-red-500 font-bold p-2 hover:bg-red-50 rounded">EXCLUIR</button>
                     </div>`;
 
-                // Adicionar no array do calendário
                 calendarEvents.push({
-                    title: `${e.responsavel} (${e.tipo})`,
+                    title: `${e.responsavel}`,
                     start: e.data,
-                    backgroundColor: e.tipo.includes('Domingo') ? '#1e40af' : '#b91c1c', // Azul p/ dom, Vermelho p/ qui
+                    backgroundColor: e.tipo.includes('Culto') ? '#208609' : '#1e40af',
                     borderColor: 'transparent'
                 });
             });
@@ -180,6 +215,10 @@
 
         window.remover = async (id) => { 
             if(confirm("Deseja remover esta escala?")) await deleteDoc(doc(db, "escalas", id)); 
+        };
+
+        window.removerMembro = async (id) => { 
+            if(confirm("Deseja remover este membro da equipe?")) await deleteDoc(doc(db, "membros", id)); 
         };
     </script>
 </body>

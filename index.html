@@ -22,47 +22,14 @@
         height: 100%;
     }
 
-    /* FullCalendar base */
-    .fc {
-        font-size: 0.85rem;
-    }
-
-    /* Cabeçalho (dias da semana) */
-    .fc .fc-col-header-cell-cushion {
-        color: black !important; /* cinza claro */
-        font-weight: 600;
-    }
-
-    /* Números dos dias nas células */
-    .fc .fc-daygrid-day-number {
-        color: #e5e7eb !important;
-        font-weight: 600;
-    }
-
-    /* Texto geral de eventos */
-    .fc .fc-event-main {
-        color: #f9fafb !important; /* branco para contraste no fundo azul/vermelho */
-    }
-
-    .fc-toolbar-title {
-        color: #fbbf24 !important;
-        font-size: 1.1rem !important;
-        font-weight: 800;
-    }
-    .fc-button-primary {
-        background-color: rgba(255,255,255,0.1) !important;
-        border: none !important;
-        color: #e5e7eb !important;
-    }
-    .fc-event {
-        border-radius: 4px !important;
-        padding: 2px !important;
-        border: none !important;
-    }
-    .fc-event-title {
-        white-space: normal !important;
-        line-height: 1.1;
-    }
+    .fc { font-size: 0.85rem; }
+    .fc .fc-col-header-cell-cushion { color: black !important; font-weight: 600; }
+    .fc .fc-daygrid-day-number { color: #e5e7eb !important; font-weight: 600; }
+    .fc .fc-event-main { color: #f9fafb !important; }
+    .fc-toolbar-title { color: #fbbf24 !important; font-size: 1.1rem !important; font-weight: 800; }
+    .fc-button-primary { background-color: rgba(255,255,255,0.1) !important; border: none !important; color: #e5e7eb !important; }
+    .fc-event { border-radius: 4px !important; padding: 2px !important; border: none !important; }
+    .fc-event-title { white-space: normal !important; line-height: 1.1; }
     
     input, select { 
         background: rgba(0,0,0,0.3) !important; 
@@ -74,11 +41,14 @@
         outline: none;
     }
     input:focus { border-color: #fbbf24 !important; }
+    option { background: #1e293b; color: white; }
 
-    /* Barra de rolagem personalizada para a lista */
     .custom-scroll::-webkit-scrollbar { width: 6px; }
     .custom-scroll::-webkit-scrollbar-track { background: transparent; }
     .custom-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+    
+    /* Estilo para esconder o modal */
+    .modal-hidden { display: none !important; }
 </style>
 
 </head>
@@ -96,7 +66,6 @@
     </header>
 
     <main class="max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
         <div class="lg:col-span-7 xl:col-span-8">
             <div class="glass-card p-4 shadow-2xl">
                 <div id="calendar"></div>
@@ -104,13 +73,11 @@
         </div>
 
         <div class="lg:col-span-5 xl:col-span-4 flex flex-col gap-6">
-            
             <div class="glass-card p-5 flex flex-col h-[400px]">
                 <h2 class="text-sm font-bold mb-4 text-yellow-500 uppercase tracking-widest flex justify-between">
                     Próximas Escalas <span>📅</span>
                 </h2>
-                <div id="listaEscalas" class="flex-grow overflow-y-auto custom-scroll space-y-3 pr-2">
-                    </div>
+                <div id="listaEscalas" class="flex-grow overflow-y-auto custom-scroll space-y-3 pr-2"></div>
             </div>
 
             <div class="grid grid-cols-1 gap-6">
@@ -138,13 +105,26 @@
                         <input id="nomeMembro" type="text" placeholder="Novo integrante" class="text-sm">
                         <button id="btnMembro" class="bg-green-600 px-4 py-2 rounded-lg font-bold hover:bg-green-500 text-xs">ADD</button>
                     </div>
-                    <ul id="listaMembros" class="grid grid-cols-2 gap-2 max-h-[120px] overflow-y-auto custom-scroll pr-2">
-                        </ul>
+                    <ul id="listaMembros" class="grid grid-cols-2 gap-2 max-h-[120px] overflow-y-auto custom-scroll pr-2"></ul>
                 </div>
             </div>
-
         </div>
     </main>
+
+    <div id="modalEditar" class="modal-hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div class="glass-card p-6 w-full max-w-sm border-yellow-500/30 h-auto">
+            <h2 class="text-yellow-500 font-bold mb-4 uppercase tracking-widest text-sm text-center">Alterar Responsável</h2>
+            <input type="hidden" id="editEscalaId">
+            <div class="mb-6">
+                <label class="text-[10px] text-gray-400 uppercase mb-2 block">Selecione o Integrante:</label>
+                <select id="editSelectMembro"></select>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="window.fecharModal()" class="flex-1 bg-white/10 py-2 rounded-lg font-bold text-xs uppercase hover:bg-white/20 transition-colors">Cancelar</button>
+                <button id="btnSalvarEdicao" class="flex-1 bg-yellow-500 py-2 rounded-lg font-bold text-xs uppercase text-black hover:bg-yellow-400 transition-colors">Salvar</button>
+            </div>
+        </div>
+    </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -181,10 +161,13 @@
         onSnapshot(collection(db, "membros"), (snap) => {
             const listaM = document.getElementById('listaMembros');
             const selectM = document.getElementById('selectMembros');
-            listaM.innerHTML = ''; listaNomesGlobal = [];
+            listaM.innerHTML = ''; 
+            listaNomesGlobal = [];
             selectM.innerHTML = '<option value="">Selecionar Membro...</option><option value="VAGO">-- VAGO --</option>';
+            
             snap.forEach(d => {
-                const m = d.data().nome; listaNomesGlobal.push(m);
+                const m = d.data().nome; 
+                listaNomesGlobal.push(m);
                 listaM.innerHTML += `
                     <li class="bg-white/5 p-2 rounded-lg flex justify-between items-center border border-white/5">
                         <span class="text-[11px] font-semibold truncate mr-2">${m}</span>
@@ -196,112 +179,78 @@
             });
         });
 
-// Escalas Realtime
-onSnapshot(query(collection(db, "escalas"), orderBy("data", "asc")), (snap) => {
-    const listaE = document.getElementById('listaEscalas');
-    listaE.innerHTML = '';
-    const calendarEvents = [];
-    const hoje = new Date(); hoje.setHours(0,0,0,0);
+        // Escalas Realtime
+        onSnapshot(query(collection(db, "escalas"), orderBy("data", "asc")), (snap) => {
+            const listaE = document.getElementById('listaEscalas');
+            listaE.innerHTML = '';
+            const calendarEvents = [];
+            const hoje = new Date(); hoje.setHours(0,0,0,0);
 
-    // *** Normaliza o texto do tipo vindo do Firestore ***
-    const normalizarTipo = (tipoBruto) => {
-        if (!tipoBruto) return "Extra";
+            const normalizarTipo = (tipoBruto) => {
+                if (!tipoBruto) return "Extra";
+                const t = tipoBruto.toLowerCase().trim();
+                if (t.startsWith("quinta")) return "Quinta";
+                if (t.startsWith("dom")) {
+                    if (t.includes("manh")) return "Domingo Manhã";
+                    if (t.includes("noit")) return "Domingo Noite";
+                    return "Domingo Manhã";
+                }
+                return "Extra";
+            };
 
-        const t = tipoBruto.toLowerCase().trim();
+            const escalas = [];
+            snap.forEach(d => {
+                const data = d.data();
+                escalas.push({
+                    id: d.id,
+                    ...data,
+                    tipoNormalizado: normalizarTipo(data.tipo)
+                });
+            });
 
-        if (t.startsWith("quinta")) return "Quinta";
-        if (t.startsWith("dom")) {
-            // Se tiver "manh" considera manhã, se tiver "noit" considera noite
-            if (t.includes("manh")) return "Domingo Manhã";
-            if (t.includes("noit")) return "Domingo Noite";
-            // fallback: se só veio "domingo" sem detalhe, coloca como manhã
-            return "Domingo Manhã";
-        }
-        return "Extra";
-    };
+            const tiposOrdem = ["Quinta", "Domingo Manhã", "Domingo Noite", "Extra"];
+            const grupos = { "Quinta": [], "Domingo Manhã": [], "Domingo Noite": [], "Extra": [] };
 
-    // Monta array com id já normalizando tipo
-    const escalas = [];
-    snap.forEach(d => {
-        const data = d.data();
-        escalas.push({
-            id: d.id,
-            ...data,
-            tipoNormalizado: normalizarTipo(data.tipo)
+            escalas.forEach(e => {
+                const dataEscala = new Date(e.data + "T00:00:00");
+                const tipo = e.tipoNormalizado;
+                if (dataEscala >= hoje) { grupos[tipo].push(e); }
+                calendarEvents.push({
+                    title: e.titulo ? `${e.responsavel}\n(${e.titulo})` : e.responsavel,
+                    start: e.data,
+                    backgroundColor: e.responsavel === "VAGO" ? "#ef4444" : "#1e40af",
+                    borderColor: 'transparent'
+                });
+            });
+
+            tiposOrdem.forEach(tipo => {
+                const listaTipo = grupos[tipo];
+                if (!listaTipo || listaTipo.length === 0) return;
+                listaE.innerHTML += `<div class="mt-2 mb-1"><h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-300">${tipo}</h3></div>`;
+                listaTipo.forEach(e => {
+                    const dataEscala = new Date(e.data + "T00:00:00");
+                    const dataF = dataEscala.toLocaleDateString('pt-BR');
+                    const isVago = e.responsavel === "VAGO";
+                    listaE.innerHTML += `
+                        <div class="bg-white/5 p-3 rounded-xl border-l-4 ${isVago ? 'border-red-500' : 'border-yellow-500'} flex justify-between items-center transition-all hover:bg-white/10">
+                            <div class="overflow-hidden mr-2">
+                                <p class="text-[9px] text-gray-400 font-bold uppercase tracking-tighter">${dataF} • ${e.tipoNormalizado}</p>
+                                <h3 class="text-sm font-black truncate ${isVago ? 'text-red-500' : 'text-white'}">${e.responsavel}</h3>
+                                <p class="text-[10px] italic text-gray-500 truncate">${e.titulo || ''}</p>
+                            </div>
+                            <div class="flex gap-1 shrink-0">
+                                <button onclick="window.editarEscala('${e.id}', '${e.responsavel}')" class="bg-yellow-500/20 text-yellow-500 p-1.5 rounded text-[9px] font-bold">EDIT</button>
+                                <button onclick="window.remover('${e.id}')" class="bg-red-500/20 text-red-500 p-1.5 rounded text-[9px] font-bold uppercase">X</button>
+                            </div>
+                        </div>`;
+                });
+            });
+
+            if (calendar) {
+                calendar.removeAllEvents();
+                calendar.addEventSource(calendarEvents);
+            }
         });
-    });
-
-    // Ordena por data
-    escalas.sort((a, b) => a.data.localeCompare(b.data));
-
-    // Agrupa por tipo normalizado
-    const tiposOrdem = ["Quinta", "Domingo Manhã", "Domingo Noite", "Extra"];
-    const grupos = {
-        "Quinta": [],
-        "Domingo Manhã": [],
-        "Domingo Noite": [],
-        "Extra": []
-    };
-
-    escalas.forEach(e => {
-        const dataEscala = new Date(e.data + "T00:00:00");
-        const tipo = e.tipoNormalizado;
-
-        if (dataEscala >= hoje) {
-            grupos[tipo].push(e);
-        }
-
-        // Eventos do calendário (usando o tipo original só para exibir na lista, se quiser)
-        calendarEvents.push({
-            title: e.titulo ? `${e.responsavel}\n(${e.titulo})` : e.responsavel,
-            start: e.data,
-            backgroundColor: e.responsavel === "VAGO" ? "#ef4444" : "#1e40af",
-            borderColor: 'transparent'
-        });
-    });
-
-    // Renderiza grupos na ordem desejada
-    tiposOrdem.forEach(tipo => {
-        const listaTipo = grupos[tipo];
-        if (!listaTipo || listaTipo.length === 0) return;
-
-        // Cabeçalho do tipo
-        listaE.innerHTML += `
-            <div class="mt-2 mb-1">
-                <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-300">
-                    ${tipo}
-                </h3>
-            </div>
-        `;
-
-        // Itens do tipo
-        listaTipo.forEach(e => {
-            const dataEscala = new Date(e.data + "T00:00:00");
-            const dataF = dataEscala.toLocaleDateString('pt-BR');
-            const isVago = e.responsavel === "VAGO";
-
-            listaE.innerHTML += `
-                <div class="bg-white/5 p-3 rounded-xl border-l-4 ${isVago ? 'border-red-500' : 'border-yellow-500'} flex justify-between items-center transition-all hover:bg-white/10">
-                    <div class="overflow-hidden mr-2">
-                        <p class="text-[9px] text-gray-400 font-bold uppercase tracking-tighter">${dataF} • ${e.tipoNormalizado}</p>
-                        <h3 class="text-sm font-black truncate ${isVago ? 'text-red-500' : 'text-white'}">${e.responsavel}</h3>
-                        <p class="text-[10px] italic text-gray-500 truncate">${e.titulo || ''}</p>
-                    </div>
-                    <div class="flex gap-1 shrink-0">
-                        <button onclick="window.editarEscala('${e.id}', '${e.responsavel}')" class="bg-yellow-500/20 text-yellow-500 p-1.5 rounded text-[9px] font-bold">EDIT</button>
-                        <button onclick="window.remover('${e.id}')" class="bg-red-500/20 text-red-500 p-1.5 rounded text-[9px] font-bold uppercase">X</button>
-                    </div>
-                </div>
-            `;
-        });
-    });
-
-    if (calendar) {
-        calendar.removeAllEvents();
-        calendar.addEventSource(calendarEvents);
-    }
-});
-
 
         // Actions
         document.getElementById('btnEscala').onclick = async () => {
@@ -324,10 +273,33 @@ onSnapshot(query(collection(db, "escalas"), orderBy("data", "asc")), (snap) => {
             if (n) { await addDoc(collection(db, "membros"), { nome: n }); document.getElementById('nomeMembro').value = ''; }
         };
 
-        window.editarEscala = async (id, atual) => {
-            const n = prompt("Trocar responsável para:", atual);
-            if (n !== null) await updateDoc(doc(db, "escalas", id), { responsavel: n });
+        // Funções de Edição com Modal
+        window.editarEscala = (id, atual) => {
+            const modal = document.getElementById('modalEditar');
+            const selectEdit = document.getElementById('editSelectMembro');
+            document.getElementById('editEscalaId').value = id;
+            
+            // Popula o select do modal
+            selectEdit.innerHTML = '<option value="VAGO">-- VAGO --</option>';
+            listaNomesGlobal.forEach(nome => {
+                const selected = nome === atual ? 'selected' : '';
+                selectEdit.innerHTML += `<option value="${nome}" ${selected}>${nome}</option>`;
+            });
+
+            modal.classList.remove('modal-hidden');
         };
+
+        window.fecharModal = () => {
+            document.getElementById('modalEditar').classList.add('modal-hidden');
+        };
+
+        document.getElementById('btnSalvarEdicao').onclick = async () => {
+            const id = document.getElementById('editEscalaId').value;
+            const novoResponsavel = document.getElementById('editSelectMembro').value;
+            await updateDoc(doc(db, "escalas", id), { responsavel: novoResponsavel });
+            window.fecharModal();
+        };
+
         window.remover = async (id) => { if(confirm("Excluir escala?")) await deleteDoc(doc(db, "escalas", id)); };
         window.removerMembro = async (id) => { if(confirm("Excluir membro?")) await deleteDoc(doc(db, "membros", id)); };
 

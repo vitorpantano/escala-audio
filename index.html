@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Áudio Bola de Neve Sorocaba</title>
+    <title>Dashboard Áudio - Bola de Neve Sorocaba</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
@@ -18,82 +18,95 @@
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
+            border-radius: 16px;
+            height: 100%;
         }
-        /* Correção de visibilidade das abas */
-        .tab-content { display: none; opacity: 0; }
-        .tab-content.active { display: block; opacity: 1; animation: fadeIn 0.3s ease-in; }
-        
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        .admin-only { display: none !important; }
-        body.is-admin .admin-only { display: inline-flex !important; }
-        
-        /* Custom FullCalendar colors */
-        .fc { color: white !important; }
-        .fc-toolbar-title { color: #fbbf24 !important; }
+        /* Custom FullCalendar */
+        .fc { color: white !important; font-size: 0.85rem; }
+        .fc-toolbar-title { color: #fbbf24 !important; font-size: 1.1rem !important; font-weight: 800; }
         .fc-button-primary { background-color: rgba(255,255,255,0.1) !important; border: none !important; }
-        .fc-event-title { white-space: normal !important; }
+        .fc-event { border-radius: 4px !important; padding: 2px !important; border: none !important; }
+        .fc-event-title { white-space: normal !important; line-height: 1.1; }
         
-        input, select { background: rgba(0,0,0,0.2) !important; color: white !important; border: 1px solid rgba(255,255,255,0.1) !important; }
+        input, select { 
+            background: rgba(0,0,0,0.3) !important; 
+            color: white !important; 
+            border: 1px solid rgba(255,255,255,0.1) !important; 
+            padding: 8px;
+            border-radius: 8px;
+            width: 100%;
+            outline: none;
+        }
+        input:focus { border-color: #fbbf24 !important; }
+
+        /* Barra de rolagem personalizada para a lista */
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body class="p-4 md:p-6">
 
-    <header class="max-w-5xl mx-auto mb-10 text-center relative">
-        <button onclick="autenticar()" class="absolute -top-2 right-0 p-2 glass-card hover:bg-white/10 text-[10px] text-yellow-500 font-bold uppercase tracking-widest">
-            <span id="lockIcon">🔒 Admin</span>
-        </button>
-
-        <h1 class="text-3xl md:text-5xl font-black italic text-yellow-500 mb-2 tracking-tighter">MINISTÉRIO DE ÁUDIO</h1>
-        <p class="text-xs tracking-[0.4em] text-gray-400 uppercase mb-8">Bola de Neve Sorocaba</p>
-        
-        <nav class="flex flex-wrap justify-center gap-3">
-            <button onclick="showTab('calendario')" class="px-5 py-2 glass-card hover:bg-white/10 font-bold text-xs">📅 CALENDÁRIO</button>
-            <button onclick="showTab('mensal')" class="px-5 py-2 glass-card hover:bg-white/10 font-bold text-xs">📋 LISTA</button>
-            <button onclick="showTab('membros')" class="admin-only px-5 py-2 glass-card border-green-500/30 font-bold text-xs">👥 EQUIPE</button>
-            <button onclick="showTab('cadastro')" class="admin-only px-5 py-2 glass-card border-blue-500/30 font-bold text-xs">➕ AGENDAR</button>
-        </nav>
+    <header class="max-w-[1600px] mx-auto mb-6 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div class="text-center md:text-left">
+            <h1 class="text-2xl md:text-3xl font-black italic text-yellow-500 tracking-tighter uppercase leading-none">Ministério de Áudio</h1>
+            <p class="text-[10px] tracking-[0.4em] text-gray-400 uppercase">Bola de Neve Sorocaba</p>
+        </div>
+        <div class="flex items-center gap-4 bg-white/5 px-4 py-2 rounded-full border border-white/10">
+            <span class="flex h-2 w-2 rounded-full bg-green-500"></span>
+            <span class="text-xs font-bold uppercase tracking-widest text-gray-300">Painel de Controle Ativo</span>
+        </div>
     </header>
 
-    <main class="max-w-5xl mx-auto">
+    <main class="max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        <section id="calendario" class="tab-content active">
+        <div class="lg:col-span-7 xl:col-span-8">
             <div class="glass-card p-4 shadow-2xl">
                 <div id="calendar"></div>
             </div>
-        </section>
+        </div>
 
-        <section id="mensal" class="tab-content">
-            <h2 class="text-xl font-bold mb-6 text-yellow-500 uppercase tracking-widest">Próximas Escalas</h2>
-            <div id="listaEscalas" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
-        </section>
-
-        <section id="membros" class="tab-content">
-            <h2 class="text-xl font-bold mb-6 text-green-400 uppercase tracking-widest">Gestão de Equipe</h2>
-            <div class="glass-card p-6 mb-6 flex gap-3">
-                <input id="nomeMembro" type="text" placeholder="Nome do integrante" class="p-3 rounded-lg flex-grow outline-none">
-                <button id="btnMembro" class="bg-green-600 px-6 py-3 rounded-lg font-bold hover:bg-green-500 transition-colors">ADD</button>
+        <div class="lg:col-span-5 xl:col-span-4 flex flex-col gap-6">
+            
+            <div class="glass-card p-5 flex flex-col h-[400px]">
+                <h2 class="text-sm font-bold mb-4 text-yellow-500 uppercase tracking-widest flex justify-between">
+                    Próximas Escalas <span>📅</span>
+                </h2>
+                <div id="listaEscalas" class="flex-grow overflow-y-auto custom-scroll space-y-3 pr-2">
+                    </div>
             </div>
-            <ul id="listaMembros" class="grid grid-cols-1 md:grid-cols-3 gap-4"></ul>
-        </section>
 
-        <section id="cadastro" class="tab-content">
-            <h2 class="text-xl font-bold mb-6 text-blue-400 uppercase tracking-widest">Nova Escala</h2>
-            <div class="glass-card p-6 md:p-8 space-y-4 max-w-xl mx-auto">
-                <input id="dataCulto" type="date" class="p-3 rounded-lg w-full outline-none">
-                <select id="tipoCulto" class="p-3 rounded-lg w-full outline-none">
-                    <option value="Quinta">Quinta</option>
-                    <option value="Domingo de Manhã">Domingo Manhã</option>
-                    <option value="Domingo de Noite">Domingo Noite</option>
-                    <option value="Extra">Escala Extra</option>
-                </select>
-                <input id="tituloEscala" type="text" placeholder="Nome da Escala (Ex: Santa Ceia)" class="p-3 rounded-lg w-full outline-none">
-                <select id="selectMembros" class="p-3 rounded-lg w-full outline-none"></select>
-                <button id="btnEscala" class="w-full bg-blue-600 py-4 rounded-lg font-black hover:bg-blue-500 transition-all shadow-lg shadow-blue-900/40">SALVAR AGORA</button>
+            <div class="grid grid-cols-1 gap-6">
+                <div class="glass-card p-5">
+                    <h2 class="text-sm font-bold mb-4 text-blue-400 uppercase tracking-widest">Agendar Culto ➕</h2>
+                    <div class="space-y-3">
+                        <div class="grid grid-cols-2 gap-2">
+                            <input id="dataCulto" type="date">
+                            <select id="tipoCulto">
+                                <option value="Quinta">Quinta</option>
+                                <option value="Domingo Manhã">Dom. Manhã</option>
+                                <option value="Domingo Noite">Dom. Noite</option>
+                                <option value="Extra">Extra</option>
+                            </select>
+                        </div>
+                        <input id="tituloEscala" type="text" placeholder="Nome da Escala (Ex: Santa Ceia)">
+                        <select id="selectMembros"></select>
+                        <button id="btnEscala" class="w-full bg-blue-600 py-2 rounded-lg font-black hover:bg-blue-500 transition-all text-sm uppercase">Salvar Escala</button>
+                    </div>
+                </div>
+
+                <div class="glass-card p-5">
+                    <h2 class="text-sm font-bold mb-4 text-green-400 uppercase tracking-widest">Equipe 👥</h2>
+                    <div class="flex gap-2 mb-4">
+                        <input id="nomeMembro" type="text" placeholder="Novo integrante" class="text-sm">
+                        <button id="btnMembro" class="bg-green-600 px-4 py-2 rounded-lg font-bold hover:bg-green-500 text-xs">ADD</button>
+                    </div>
+                    <ul id="listaMembros" class="grid grid-cols-2 gap-2 max-h-[120px] overflow-y-auto custom-scroll pr-2">
+                        </ul>
+                </div>
             </div>
-        </section>
 
+        </div>
     </main>
 
     <script type="module">
@@ -114,48 +127,14 @@
         const db = getFirestore(app);
         let calendar;
         let listaNomesGlobal = [];
-        const SENHA_ADMIN = "bola123";
 
-        // Funções Globais (necessárias para o onclick do HTML)
-        window.showTab = (id) => {
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            const target = document.getElementById(id);
-            if(target) {
-                target.classList.add('active');
-                if(id === 'calendario' && calendar) {
-                    setTimeout(() => { calendar.render(); calendar.updateSize(); }, 100);
-                }
-            }
-        };
-
-        window.autenticar = () => {
-            if (document.body.classList.contains('is-admin')) {
-                if(confirm("Sair do modo edição?")) {
-                    localStorage.removeItem('isAdmin');
-                    location.reload();
-                }
-                return;
-            }
-            if (prompt("Senha Admin:") === SENHA_ADMIN) {
-                localStorage.setItem('isAdmin', 'true');
-                location.reload();
-            }
-        };
-
-        // Verificação Inicial de Admin
-        if (localStorage.getItem('isAdmin') === 'true') {
-            document.body.classList.add('is-admin');
-            document.getElementById('lockIcon').innerText = "🔓 Sair";
-        }
-
-        // Inicializar Calendário
         document.addEventListener('DOMContentLoaded', () => {
             const calendarEl = document.getElementById('calendar');
             calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'dayGridMonth',
+                height: 'auto',
                 locale: 'pt-br',
                 headerToolbar: { left: 'prev,next', center: 'title', right: 'today' },
-                themeSystem: 'standard',
                 events: []
             });
             calendar.render();
@@ -166,13 +145,15 @@
             const listaM = document.getElementById('listaMembros');
             const selectM = document.getElementById('selectMembros');
             listaM.innerHTML = ''; listaNomesGlobal = [];
-            selectM.innerHTML = '<option value="">Selecione...</option><option value="VAGO">-- VAGO --</option>';
+            selectM.innerHTML = '<option value="">Selecionar Membro...</option><option value="VAGO">-- VAGO --</option>';
             snap.forEach(d => {
                 const m = d.data().nome; listaNomesGlobal.push(m);
                 listaM.innerHTML += `
-                    <li class="glass-card p-4 flex justify-between items-center">
-                        <span class="font-bold">${m}</span>
-                        <button onclick="window.removerMembro('${d.id}')" class="admin-only text-red-500 text-xs font-bold">EXCLUIR</button>
+                    <li class="bg-white/5 p-2 rounded-lg flex justify-between items-center border border-white/5">
+                        <span class="text-[11px] font-semibold truncate mr-2">${m}</span>
+                        <button onclick="window.removerMembro('${d.id}')" class="text-red-500 hover:text-red-400">
+                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"/></svg>
+                        </button>
                     </li>`;
                 selectM.innerHTML += `<option value="${m}">${m}</option>`;
             });
@@ -193,15 +174,15 @@
                 if (dataEscala >= hoje) {
                     const isVago = e.responsavel === "VAGO";
                     listaE.innerHTML += `
-                        <div class="glass-card p-5 border-l-4 ${isVago ? 'border-red-500' : 'border-yellow-500'} flex justify-between items-center">
-                            <div>
-                                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">${dataF} | ${e.tipo}</p>
-                                <h3 class="text-lg font-black ${isVago ? 'text-red-500' : 'text-white'}">${e.responsavel}</h3>
-                                <p class="text-xs italic text-gray-500">${e.titulo || ''}</p>
+                        <div class="bg-white/5 p-3 rounded-xl border-l-4 ${isVago ? 'border-red-500' : 'border-yellow-500'} flex justify-between items-center transition-all hover:bg-white/10">
+                            <div class="overflow-hidden mr-2">
+                                <p class="text-[9px] text-gray-400 font-bold uppercase tracking-tighter">${dataF} • ${e.tipo}</p>
+                                <h3 class="text-sm font-black truncate ${isVago ? 'text-red-500' : 'text-white'}">${e.responsavel}</h3>
+                                <p class="text-[10px] italic text-gray-500 truncate">${e.titulo || ''}</p>
                             </div>
-                            <div class="flex gap-2">
-                                <button onclick="window.editarEscala('${d.id}', '${e.responsavel}')" class="admin-only bg-yellow-500/20 text-yellow-500 p-2 rounded font-bold text-[10px]">EDITAR</button>
-                                <button onclick="window.remover('${d.id}')" class="admin-only bg-red-500/20 text-red-500 p-2 rounded font-bold text-[10px]">EXCLUIR</button>
+                            <div class="flex gap-1 shrink-0">
+                                <button onclick="window.editarEscala('${d.id}', '${e.responsavel}')" class="bg-yellow-500/20 text-yellow-500 p-1.5 rounded text-[9px] font-bold">EDIT</button>
+                                <button onclick="window.remover('${d.id}')" class="bg-red-500/20 text-red-500 p-1.5 rounded text-[9px] font-bold uppercase">X</button>
                             </div>
                         </div>`;
                 }
@@ -216,17 +197,19 @@
             if(calendar) { calendar.removeAllEvents(); calendar.addEventSource(calendarEvents); }
         });
 
-        // CRUD Actions
+        // Actions
         document.getElementById('btnEscala').onclick = async () => {
             const data = document.getElementById('dataCulto').value;
+            const resp = document.getElementById('selectMembros').value || "VAGO";
             if (data) {
                 await addDoc(collection(db, "escalas"), { 
                     data, 
                     tipo: document.getElementById('tipoCulto').value, 
                     titulo: document.getElementById('tituloEscala').value, 
-                    responsavel: document.getElementById('selectMembros').value || "VAGO" 
+                    responsavel: resp 
                 });
-                alert("Salvo!"); showTab('mensal');
+                document.getElementById('tituloEscala').value = "";
+                document.getElementById('dataCulto').value = "";
             }
         };
 
@@ -236,10 +219,10 @@
         };
 
         window.editarEscala = async (id, atual) => {
-            const n = prompt("Novo responsável (" + listaNomesGlobal.join(", ") + "):", atual);
+            const n = prompt("Trocar responsável para:", atual);
             if (n !== null) await updateDoc(doc(db, "escalas", id), { responsavel: n });
         };
-        window.remover = async (id) => { if(confirm("Excluir?")) await deleteDoc(doc(db, "escalas", id)); };
+        window.remover = async (id) => { if(confirm("Excluir escala?")) await deleteDoc(doc(db, "escalas", id)); };
         window.removerMembro = async (id) => { if(confirm("Excluir membro?")) await deleteDoc(doc(db, "membros", id)); };
 
     </script>

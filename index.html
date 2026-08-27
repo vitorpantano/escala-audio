@@ -23,13 +23,14 @@
     }
 
     .fc { font-size: 0.85rem; }
-    .fc .fc-col-header-cell-cushion { color: black !important; font-weight: 600; }
+    .fc .fc-col-header-cell-cushion { color: #fbbf24 !important; font-weight: 800; text-transform: uppercase; }
     .fc .fc-daygrid-day-number { color: #e5e7eb !important; font-weight: 600; }
     .fc .fc-event-main { color: #f9fafb !important; }
     .fc-toolbar-title { color: #fbbf24 !important; font-size: 1.1rem !important; font-weight: 800; }
     .fc-button-primary { background-color: rgba(255,255,255,0.1) !important; border: none !important; color: #e5e7eb !important; }
-    .fc-event { border-radius: 4px !important; padding: 2px !important; border: none !important; }
-    .fc-event-title { white-space: normal !important; line-height: 1.1; }
+    .fc-event { border-radius: 6px !important; padding: 3px !important; border: none !important; cursor: pointer; transition: transform 0.1s ease; }
+    .fc-event:hover { transform: scale(1.02); filter: brightness(1.1); }
+    .fc-event-title { white-space: normal !important; line-height: 1.15; font-size: 0.78rem; }
     
     input, select { 
         background: rgba(0,0,0,0.3) !important; 
@@ -58,15 +59,21 @@
             <h1 class="text-2xl md:text-3xl font-black italic text-yellow-500 tracking-tighter uppercase leading-none">Ministério de Áudio</h1>
             <p class="text-[10px] tracking-[0.4em] text-gray-400 uppercase">Bola de Neve Sorocaba</p>
         </div>
-        <div class="flex items-center gap-4 bg-white/5 px-4 py-2 rounded-full border border-white/10">
-            <span class="flex h-2 w-2 rounded-full bg-green-500"></span>
-            <span class="text-xs font-bold uppercase tracking-widest text-gray-300">Painel de Controle Ativo</span>
+        
+        <!-- Legenda de Cores -->
+        <div class="flex flex-wrap items-center gap-3 bg-white/5 px-4 py-2 rounded-full border border-white/10 text-xs">
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Pendente</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Confirmado</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-red-500"></span> Vago</span>
         </div>
     </header>
 
     <main class="max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div class="lg:col-span-7 xl:col-span-8 flex flex-col gap-6">
             <div class="glass-card p-4 shadow-2xl">
+                <div class="flex justify-between items-center mb-2 px-1">
+                    <span class="text-[11px] text-gray-400 font-semibold italic">💡 Dica: Clique em uma escala no calendário para confirmar sua presença.</span>
+                </div>
                 <div id="calendar"></div>
             </div>
             
@@ -74,8 +81,7 @@
                 <h2 id="tituloStats" class="text-xs font-bold mb-4 text-yellow-500 uppercase tracking-widest flex items-center gap-2">
                     Participações no Mês 📊
                 </h2>
-                <div id="listaStats" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                    </div>
+                <div id="listaStats" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3"></div>
             </div>
         </div>
 
@@ -118,6 +124,7 @@
         </div>
     </main>
 
+    <!-- Modal Editar Responsável -->
     <div id="modalEditar" class="modal-hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
         <div class="glass-card p-6 w-full max-w-sm border-yellow-500/30 h-auto text-center">
             <h2 class="text-yellow-500 font-bold mb-4 uppercase tracking-widest text-sm">Alterar Responsável</h2>
@@ -153,7 +160,6 @@
         let listaNomesGlobal = [];
         let todasEscalas = [];
 
-        // Função para atualizar as estatísticas de contagem
         const atualizarEstatisticas = () => {
             if (!calendar) return;
             const viewDate = calendar.getDate();
@@ -173,7 +179,6 @@
             const listaStats = document.getElementById('listaStats');
             listaStats.innerHTML = '';
             
-            // Ordena por quem tem mais escalas
             Object.entries(contagem)
                 .sort((a, b) => b[1] - a[1])
                 .forEach(([nome, qtd]) => {
@@ -193,7 +198,14 @@
                 height: 'auto',
                 locale: 'pt-br',
                 headerToolbar: { left: 'prev,next', center: 'title', right: 'today' },
-                datesSet: () => atualizarEstatisticas(), // Atualiza quando mudar o mês
+                datesSet: () => atualizarEstatisticas(),
+                eventClick: (info) => {
+                    const escalaId = info.event.id;
+                    const escala = todasEscalas.find(e => e.id === escalaId);
+                    if (escala) {
+                        window.alternarConfirmacao(escala.id, escala.responsavel, escala.confirmado);
+                    }
+                },
                 events: []
             });
             calendar.render();
@@ -230,27 +242,57 @@
                 
                 const dataEscala = new Date(data.data + "T00:00:00");
                 const isVago = data.responsavel === "VAGO";
+                const isConfirmado = data.confirmado === true;
+
+                // Cores por estado
+                let borderColorClass = "border-amber-500";
+                let eventBgColor = "#d97706"; // Âmbar (Pendente)
+                let statusBadge = `<span class="text-[9px] bg-amber-500/20 text-amber-300 font-bold px-1.5 py-0.5 rounded">⏳ Pendente</span>`;
+                let iconTitle = "⏳";
+
+                if (isVago) {
+                    borderColorClass = "border-red-500";
+                    eventBgColor = "#ef4444"; // Vermelho (Vago)
+                    statusBadge = `<span class="text-[9px] bg-red-500/20 text-red-400 font-bold px-1.5 py-0.5 rounded">VAGO</span>`;
+                    iconTitle = "❌";
+                } else if (isConfirmado) {
+                    borderColorClass = "border-emerald-500";
+                    eventBgColor = "#059669"; // Verde Esmeralda (Confirmado)
+                    statusBadge = `<span class="text-[9px] bg-emerald-500/20 text-emerald-300 font-bold px-1.5 py-0.5 rounded">✅ Confirmado</span>`;
+                    iconTitle = "✅";
+                }
 
                 if (dataEscala >= hoje) {
                     const dataF = dataEscala.toLocaleDateString('pt-BR');
                     listaE.innerHTML += `
-                        <div class="bg-white/5 p-3 rounded-xl border-l-4 ${isVago ? 'border-red-500' : 'border-yellow-500'} flex justify-between items-center transition-all hover:bg-white/10">
+                        <div class="bg-white/5 p-3 rounded-xl border-l-4 ${borderColorClass} flex justify-between items-center transition-all hover:bg-white/10">
                             <div class="overflow-hidden mr-2">
-                                <p class="text-[9px] text-gray-400 font-bold uppercase tracking-tighter">${dataF} • ${data.tipo}</p>
+                                <div class="flex items-center gap-2 mb-0.5">
+                                    <p class="text-[9px] text-gray-400 font-bold uppercase tracking-tighter">${dataF} • ${data.tipo}</p>
+                                    ${statusBadge}
+                                </div>
                                 <h3 class="text-sm font-black truncate ${isVago ? 'text-red-500' : 'text-white'}">${data.responsavel}</h3>
                                 <p class="text-[10px] italic text-gray-500 truncate">${data.titulo || ''}</p>
                             </div>
-                            <div class="flex gap-1 shrink-0">
+                            <div class="flex items-center gap-1 shrink-0">
+                                ${!isVago ? `
+                                    <button onclick="window.alternarConfirmacao('${d.id}', '${data.responsavel}', ${isConfirmado})" 
+                                            class="${isConfirmado ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-300'} p-1.5 rounded text-[9px] font-bold">
+                                        ${isConfirmado ? 'DESFAZER' : 'CONFIRMAR'}
+                                    </button>
+                                ` : ''}
                                 <button onclick="window.editarEscala('${d.id}', '${data.responsavel}')" class="bg-yellow-500/20 text-yellow-500 p-1.5 rounded text-[9px] font-bold">EDIT</button>
                                 <button onclick="window.remover('${d.id}')" class="bg-red-500/20 text-red-500 p-1.5 rounded text-[9px] font-bold uppercase">X</button>
                             </div>
                         </div>`;
                 }
 
+                const tituloBase = data.titulo ? `${data.responsavel}\n(${data.titulo})` : data.responsavel;
                 calendarEvents.push({
-                    title: data.titulo ? `${data.responsavel}\n(${data.titulo})` : data.responsavel,
+                    id: d.id,
+                    title: `${iconTitle} ${tituloBase}`,
                     start: data.data,
-                    backgroundColor: isVago ? "#ef4444" : "#1e40af",
+                    backgroundColor: eventBgColor,
                     borderColor: 'transparent'
                 });
             });
@@ -262,15 +304,34 @@
             atualizarEstatisticas();
         });
 
-        // Eventos
+        // Alternar confirmação do membro
+        window.alternarConfirmacao = async (id, responsavel, statusAtual) => {
+            if (responsavel === "VAGO") {
+                alert("Esta escala está VAGA. Primeiro atribua um integrante.");
+                return;
+            }
+
+            const novoStatus = !statusAtual;
+            const msg = novoStatus 
+                ? `Confirmar presença de ${responsavel} nesta escala?` 
+                : `Deseja desmarcar a confirmação de ${responsavel}?`;
+
+            if (confirm(msg)) {
+                await updateDoc(doc(db, "escalas", id), { confirmado: novoStatus });
+            }
+        };
+
+        // Salvar Nova Escala (nasce como pendente: false)
         document.getElementById('btnEscala').onclick = async () => {
             const data = document.getElementById('dataCulto').value;
+            const resp = document.getElementById('selectMembros').value || "VAGO";
             if (data) {
                 await addDoc(collection(db, "escalas"), { 
                     data, 
                     tipo: document.getElementById('tipoCulto').value, 
                     titulo: document.getElementById('tituloEscala').value, 
-                    responsavel: document.getElementById('selectMembros').value || "VAGO" 
+                    responsavel: resp,
+                    confirmado: false
                 });
                 document.getElementById('tituloEscala').value = "";
                 document.getElementById('dataCulto').value = "";
@@ -299,7 +360,8 @@
         document.getElementById('btnSalvarEdicao').onclick = async () => {
             const id = document.getElementById('editEscalaId').value;
             const novo = document.getElementById('editSelectMembro').value;
-            await updateDoc(doc(db, "escalas", id), { responsavel: novo });
+            // Ao alterar o responsável, reinicia a confirmação para falso
+            await updateDoc(doc(db, "escalas", id), { responsavel: novo, confirmado: false });
             window.fecharModal();
         };
 

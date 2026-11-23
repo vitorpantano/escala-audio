@@ -3,64 +3,271 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Áudio Bola de Neve Sorocaba</title>
+    <title>[DEBUG] Dashboard Áudio - Bola de Neve Sorocaba</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        .fc-event-title { white-space: normal !important; display: block !important; line-height: 1.2; padding: 2px 0; }
-        .fc-event { cursor: pointer; padding: 2px; font-size: 0.85em; margin-bottom: 1px !important; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        .admin-only { display: none !important; }
-        body.is-admin .admin-only { display: inline-flex !important; }
-    </style>
-</head>
-<body class="bg-gray-100 font-sans">
+    body {
+        font-family: 'Inter', sans-serif;
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        color: #f8fafc;
+        min-height: 100vh;
+    }
+    .glass-card {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        height: 100%;
+    }
 
-    <header class="bg-black text-white p-6 shadow-lg relative">
-        <button onclick="autenticar()" class="absolute top-4 right-4 text-gray-500 hover:text-yellow-500 text-xs">
-            <span id="lockIcon">🔒 Admin</span>
-        </button>
-        <h1 class="text-2xl font-bold text-center uppercase tracking-wider">Ministério de Áudio<br> Bola de Neve Sorocaba</h1>
-        <nav class="flex flex-wrap justify-center mt-4 gap-4">
-            <button onclick="showTab('calendario')" class="hover:text-yellow-500 font-bold border-b-2 border-transparent hover:border-yellow-500 transition-all">📅 Calendário</button>
-            <button onclick="showTab('mensal')" class="hover:text-yellow-500 font-bold border-b-2 border-transparent hover:border-yellow-500 transition-all">📋 Lista</button>
-            <button onclick="showTab('membros')" class="admin-only hover:text-yellow-500 font-bold border-b-2 border-transparent hover:border-yellow-500 transition-all">👥 Equipe</button>
-            <button onclick="showTab('cadastro')" class="admin-only hover:text-yellow-500 font-bold border-b-2 border-transparent hover:border-yellow-500 transition-all">➕ Agendar</button>
-        </nav>
+    .fc { font-size: 0.85rem; }
+    .fc .fc-col-header-cell-cushion { color: #000000 !important; font-weight: 800; text-transform: uppercase; }
+    .fc .fc-daygrid-day-number { color: #e5e7eb !important; font-weight: 600; }
+    .fc .fc-event-main { color: #f9fafb !important; }
+    .fc-toolbar-title { color: #fbbf24 !important; font-size: 1.1rem !important; font-weight: 800; }
+    .fc-button-primary { background-color: rgba(255,255,255,0.1) !important; border: none !important; color: #e5e7eb !important; }
+    .fc-event { border-radius: 6px !important; padding: 3px !important; border: none !important; cursor: pointer; transition: transform 0.1s ease; }
+    .fc-event:hover { transform: scale(1.02); filter: brightness(1.1); }
+    .fc-event-title { white-space: normal !important; line-height: 1.15; font-size: 0.78rem; }
+    
+    input, select { 
+        background: rgba(0,0,0,0.3) !important; 
+        color: white !important; 
+        border: 1px solid rgba(255,255,255,0.1) !important; 
+        padding: 8px;
+        border-radius: 8px;
+        width: 100%;
+        outline: none;
+    }
+    textarea {
+        background: rgba(0,0,0,0.3) !important;
+        color: white !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        padding: 8px;
+        border-radius: 8px;
+        width: 100%;
+        outline: none;
+        font-size: 0.8rem;
+    }
+    input[type="checkbox"] { width: auto; accent-color: #fbbf24; }
+    input:focus, textarea:focus { border-color: #fbbf24 !important; }
+    option { background: #1e293b; color: white; }
+
+    .custom-scroll::-webkit-scrollbar { width: 6px; }
+    .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+    
+    .modal-hidden { display: none !important; }
+</style>
+
+</head>
+<body class="p-4 md:p-6">
+
+    <!-- Barra de DEBUG -->
+    <div class="max-w-[1600px] mx-auto mb-4 flex flex-col sm:flex-row items-center justify-between gap-2 bg-fuchsia-600/20 border border-fuchsia-500/40 rounded-xl px-4 py-2 text-xs">
+        <span class="font-black text-fuchsia-300 uppercase tracking-widest">🧪 Modo Debug — versão de testes</span>
+        <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" id="toggleDadosTeste">
+            <span>Usar dados de teste <span class="text-gray-400">(coleções separadas, não afeta a escala real)</span></span>
+        </label>
+        <a href="./" class="text-fuchsia-300 underline hover:text-fuchsia-200">Ir para versão oficial →</a>
+    </div>
+
+    <header class="max-w-[1600px] mx-auto mb-6 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div class="text-center md:text-left">
+            <h1 class="text-2xl md:text-3xl font-black italic text-yellow-500 tracking-tighter uppercase leading-none">Ministério de Áudio</h1>
+            <p class="text-[10px] tracking-[0.4em] text-gray-400 uppercase">Bola de Neve Sorocaba</p>
+        </div>
+        
+        <!-- Legenda de Cores -->
+        <div class="flex flex-wrap items-center gap-3 bg-white/5 px-4 py-2 rounded-full border border-white/10 text-xs">
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Pendente</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Confirmado</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-red-500"></span> Vago</span>
+        </div>
     </header>
 
-    <main class="max-w-4xl mx-auto p-4 md:p-6">
-        <section id="calendario" class="tab-content active"><div class="bg-white p-4 rounded-xl shadow-md"><div id="calendar"></div></div></section>
-        <section id="mensal" class="tab-content"><h2 class="text-xl font-bold mb-4 text-gray-800">Próximas Escalas</h2><div id="listaEscalas" class="grid gap-3"></div></section>
-        <section id="membros" class="tab-content">
-            <h2 class="text-xl font-bold mb-4 text-gray-800">Equipe</h2>
-            <div class="bg-white p-4 rounded-xl shadow-md mb-6 flex gap-2">
-                <input id="nomeMembro" type="text" placeholder="Nome do integrante" class="border p-2 rounded-lg flex-grow">
-                <button id="btnMembro" class="bg-green-600 text-white px-4 py-2 rounded-lg font-bold">Add</button>
+    <main class="max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-7 xl:col-span-8 flex flex-col gap-6">
+            <div class="glass-card p-4 shadow-2xl">
+                <div class="flex justify-between items-center mb-2 px-1">
+                    <span class="text-[11px] text-gray-400 font-semibold italic">💡 Dica: Clique em uma escala no calendário para confirmar sua presença.</span>
+                </div>
+                <div id="calendar"></div>
             </div>
-            <ul id="listaMembros" class="bg-white rounded-xl shadow-md divide-y overflow-hidden"></ul>
-        </section>
-        <section id="cadastro" class="tab-content">
-            <h2 class="text-xl font-bold mb-4 text-gray-800">Nova Escala</h2>
-            <div class="bg-white p-6 rounded-xl shadow-md space-y-4">
-                <input id="dataCulto" type="date" class="border p-2 rounded-lg w-full">
-                <select id="tipoCulto" class="border p-2 rounded-lg w-full">
-                    <option value="Quinta">Quinta</option>
-                    <option value="Domingo de Manhã">Domingo Manhã</option>
-                    <option value="Domingo de Noite">Domingo Noite</option>
-                    <option value="Extra">Escala Extra</option>
-                </select>
-                <input id="tituloEscala" type="text" placeholder="Nome da Escala (Ex: Santa Ceia)" class="border p-2 rounded-lg w-full">
-                <select id="selectMembros" class="border p-2 rounded-lg w-full"></select>
-                <button id="btnEscala" class="bg-blue-700 text-white px-6 py-3 rounded-xl w-full font-bold shadow-lg">Salvar</button>
+            
+            <div class="glass-card p-5">
+                <h2 id="tituloStats" class="text-xs font-bold mb-4 text-yellow-500 uppercase tracking-widest flex items-center gap-2">
+                    Participações no Mês 📊
+                </h2>
+                <div id="listaStats" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3"></div>
             </div>
-        </section>
+        </div>
+
+        <div class="lg:col-span-5 xl:col-span-4 flex flex-col gap-6">
+            <div class="glass-card p-5 flex flex-col h-[400px]">
+                <h2 class="text-sm font-bold mb-4 text-yellow-500 uppercase tracking-widest flex justify-between">
+                    Próximas Escalas <span>📅</span>
+                </h2>
+                <div id="listaEscalas" class="flex-grow overflow-y-auto custom-scroll space-y-3 pr-2"></div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-6">
+                <div class="glass-card p-5">
+                    <h2 class="text-sm font-bold mb-4 text-blue-400 uppercase tracking-widest">Agendar Culto ➕</h2>
+                    <div class="space-y-3">
+                        <div class="grid grid-cols-2 gap-2">
+                            <input id="dataCulto" type="date">
+                            <select id="tipoCulto">
+                                <option value="Quinta">Quinta</option>
+                                <option value="Domingo Manhã">Dom. Manhã</option>
+                                <option value="Domingo Noite">Dom. Noite</option>
+                                <option value="Extra">Extra</option>
+                            </select>
+                        </div>
+                        <input id="tituloEscala" type="text" placeholder="Nome da Escala (Ex: Santa Ceia)">
+                        <select id="selectMembros"></select>
+                        <button id="btnEscala" class="w-full bg-blue-600 py-2 rounded-lg font-black hover:bg-blue-500 transition-all text-sm uppercase">Salvar Escala</button>
+                    </div>
+                </div>
+
+                <div class="glass-card p-5">
+                    <h2 class="text-sm font-bold mb-4 text-green-400 uppercase tracking-widest">Equipe 👥</h2>
+                    <div class="space-y-2 mb-4">
+                        <input id="nomeMembro" type="text" placeholder="Novo integrante" class="text-sm">
+                        <div class="grid grid-cols-2 gap-2">
+                            <input id="telefoneMembro" type="tel" placeholder="WhatsApp (15) 99999-9999" class="text-sm">
+                            <input id="emailMembro" type="email" placeholder="E-mail" class="text-sm">
+                        </div>
+                        <button id="btnMembro" class="w-full bg-green-600 py-2 rounded-lg font-bold hover:bg-green-500 text-xs uppercase">Adicionar Integrante</button>
+                    </div>
+                    <ul id="listaMembros" class="space-y-2 max-h-[220px] overflow-y-auto custom-scroll pr-2"></ul>
+                </div>
+
+                <div class="glass-card p-5">
+                    <h2 class="text-sm font-bold mb-3 text-fuchsia-400 uppercase tracking-widest flex justify-between items-center">
+                        Notificações 🔔
+                        <button onclick="window.abrirConfigNotificacoes()" class="bg-white/10 hover:bg-white/20 px-3 py-1 rounded-lg text-[10px] font-bold normal-case tracking-normal text-white">⚙️ Configurar</button>
+                    </h2>
+                    <div id="resumoNotificacoes" class="flex flex-wrap gap-2 text-[10px] mb-3"></div>
+                    <p class="text-[10px] text-gray-400 uppercase font-bold mb-2">Avisos a enviar</p>
+                    <div id="listaAvisos" class="space-y-2 max-h-[220px] overflow-y-auto custom-scroll pr-2"></div>
+                    <button onclick="window.enviarResumoGrupo()" class="mt-3 w-full bg-emerald-700/60 hover:bg-emerald-600 py-2 rounded-lg font-bold text-[10px] uppercase">📋 Enviar resumo no grupo do WhatsApp</button>
+                </div>
+            </div>
+        </div>
     </main>
+
+    <!-- Modal Editar Responsável -->
+    <div id="modalEditar" class="modal-hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div class="glass-card p-6 w-full max-w-sm border-yellow-500/30 h-auto text-center">
+            <h2 class="text-yellow-500 font-bold mb-4 uppercase tracking-widest text-sm">Alterar Responsável</h2>
+            <input type="hidden" id="editEscalaId">
+            <div class="mb-6 text-left">
+                <label class="text-[10px] text-gray-400 uppercase mb-2 block">Selecione o Integrante:</label>
+                <select id="editSelectMembro"></select>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="window.fecharModal()" class="flex-1 bg-white/10 py-2 rounded-lg font-bold text-xs uppercase hover:bg-white/20">Cancelar</button>
+                <button id="btnSalvarEdicao" class="flex-1 bg-yellow-500 py-2 rounded-lg font-bold text-xs uppercase text-black hover:bg-yellow-400">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Editar Membro -->
+    <div id="modalMembro" class="modal-hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div class="glass-card p-6 w-full max-w-sm border-green-500/30 h-auto">
+            <h2 class="text-green-400 font-bold mb-4 uppercase tracking-widest text-sm text-center">Editar Integrante</h2>
+            <input type="hidden" id="editMembroId">
+            <input type="hidden" id="editMembroNomeAntigo">
+            <div class="space-y-3 mb-6">
+                <div>
+                    <label class="text-[10px] text-gray-400 uppercase mb-1 block">Nome</label>
+                    <input id="editMembroNome" type="text">
+                </div>
+                <div>
+                    <label class="text-[10px] text-gray-400 uppercase mb-1 block">Telefone / WhatsApp</label>
+                    <input id="editMembroTelefone" type="tel" placeholder="(15) 99999-9999">
+                </div>
+                <div>
+                    <label class="text-[10px] text-gray-400 uppercase mb-1 block">E-mail</label>
+                    <input id="editMembroEmail" type="email" placeholder="nome@email.com">
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="window.fecharModalMembro()" class="flex-1 bg-white/10 py-2 rounded-lg font-bold text-xs uppercase hover:bg-white/20">Cancelar</button>
+                <button id="btnSalvarMembro" class="flex-1 bg-green-600 py-2 rounded-lg font-bold text-xs uppercase hover:bg-green-500">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Configurar Notificações -->
+    <div id="modalConfig" class="modal-hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div class="glass-card p-6 w-full max-w-lg border-fuchsia-500/30 h-auto max-h-[90vh] overflow-y-auto custom-scroll">
+            <h2 class="text-fuchsia-400 font-bold mb-4 uppercase tracking-widest text-sm text-center">Configurar Notificações</h2>
+            <div class="space-y-5 text-sm">
+
+                <div class="space-y-2">
+                    <label class="flex items-center gap-2 font-bold"><input type="checkbox" id="cfgWhatsAtivo"> 💬 Notificar via WhatsApp</label>
+                    <p class="text-[10px] text-gray-400">Abre o WhatsApp com a mensagem pronta para o número do integrante — é só tocar em enviar.</p>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="flex items-center gap-2 font-bold"><input type="checkbox" id="cfgEmailAtivo"> ✉️ Notificar via E-mail</label>
+                    <div>
+                        <label class="text-[10px] text-gray-400 uppercase mb-1 block">E-mails em cópia (líderes / admins) — separados por vírgula</label>
+                        <input id="cfgEmailsCopia" type="text" placeholder="lider@email.com, outro@email.com">
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-gray-400 uppercase mb-1 block">Assunto do e-mail</label>
+                        <input id="cfgAssunto" type="text">
+                    </div>
+                    <details class="bg-black/20 rounded-lg p-3">
+                        <summary class="cursor-pointer text-[11px] font-bold text-gray-300">Envio automático por EmailJS (opcional)</summary>
+                        <p class="text-[10px] text-gray-400 my-2">Sem isso, o botão de e-mail abre seu app de e-mail com a mensagem pronta. Com uma conta gratuita em emailjs.com, o e-mail é enviado direto do site. O template do EmailJS deve usar as variáveis <code>{{to_email}}</code>, <code>{{cc}}</code>, <code>{{subject}}</code> e <code>{{message}}</code>.</p>
+                        <div class="grid grid-cols-1 gap-2">
+                            <input id="cfgEmailjsService" type="text" placeholder="Service ID">
+                            <input id="cfgEmailjsTemplate" type="text" placeholder="Template ID">
+                            <input id="cfgEmailjsKey" type="text" placeholder="Public Key">
+                        </div>
+                    </details>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-[10px] text-gray-400 uppercase mb-1 block">Avisar com antecedência de</label>
+                        <select id="cfgAntecedencia">
+                            <option value="1">1 dia</option>
+                            <option value="2">2 dias</option>
+                            <option value="3">3 dias</option>
+                            <option value="7">1 semana</option>
+                            <option value="14">2 semanas</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-gray-400 uppercase mb-1 block">Link do site na mensagem</label>
+                        <input id="cfgLink" type="text">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-[10px] text-gray-400 uppercase mb-1 block">Mensagem</label>
+                    <textarea id="cfgMensagem" rows="5"></textarea>
+                    <p class="text-[10px] text-gray-500 mt-1">Variáveis: {nome} {data} {diaSemana} {tipo} {titulo} {link}</p>
+                </div>
+            </div>
+            <div class="flex gap-2 mt-6">
+                <button onclick="window.fecharConfig()" class="flex-1 bg-white/10 py-2 rounded-lg font-bold text-xs uppercase hover:bg-white/20">Cancelar</button>
+                <button id="btnSalvarConfig" class="flex-1 bg-fuchsia-600 py-2 rounded-lg font-bold text-xs uppercase hover:bg-fuchsia-500">Salvar</button>
+            </div>
+        </div>
+    </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, updateDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, where, getDocs, deleteDoc, updateDoc, setDoc, doc, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCeArSQ8R9W8japktjIfdigLkWldcqTyF0",
@@ -74,109 +281,516 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        let calendar;
-        let listaNomesGlobal = [];
-        const SENHA_ADMIN = "bola123";
 
-        window.autenticar = () => {
-            if (document.body.classList.contains('is-admin')) {
-                if(confirm("Sair do modo edição?")) { document.body.classList.remove('is-admin'); localStorage.removeItem('isAdmin'); location.reload(); }
-                return;
-            }
-            if (prompt("Senha:") === SENHA_ADMIN) { document.body.classList.add('is-admin'); localStorage.setItem('isAdmin', 'true'); location.reload(); }
+        // ===== DEBUG: alternar entre dados reais e coleções de teste =====
+        let modoTeste = false;
+        try { modoTeste = localStorage.getItem('debugDadosTeste') === 'true'; } catch (e) {}
+        const col = (nome) => (modoTeste ? 'debug_' : '') + nome;
+        const toggleTeste = document.getElementById('toggleDadosTeste');
+        toggleTeste.checked = modoTeste;
+        toggleTeste.onchange = () => {
+            try { localStorage.setItem('debugDadosTeste', toggleTeste.checked ? 'true' : 'false'); } catch (e) {}
+            location.reload();
         };
 
-        if (localStorage.getItem('isAdmin') === 'true') document.body.classList.add('is-admin');
+        let calendar;
+        let listaNomesGlobal = [];
+        let membrosGlobal = [];
+        let todasEscalas = [];
+
+        const CONFIG_PADRAO = {
+            whatsappAtivo: true,
+            emailAtivo: true,
+            emailsCopia: "",
+            assunto: "Escala Áudio — {data} ({tipo})",
+            antecedenciaDias: 3,
+            link: "https://vitorpantano.github.io/escala-audio/",
+            mensagem: "Olá {nome}! 🎧\n\nLembrete da escala do Ministério de Áudio:\n📅 {diaSemana}, {data} — {tipo}\n{titulo}\n\nConfirme sua presença em: {link}\n\nDeus abençoe! 🙌",
+            emailjsServiceId: "",
+            emailjsTemplateId: "",
+            emailjsPublicKey: ""
+        };
+        let configNotif = { ...CONFIG_PADRAO };
+
+        // ===== Utilitários =====
+        const esc = (t) => String(t ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        const soDigitos = (t) => String(t || '').replace(/\D/g, '');
+        const numeroWhats = (tel) => {
+            const d = soDigitos(tel);
+            if (!d) return '';
+            return (d.length === 10 || d.length === 11) ? '55' + d : d;
+        };
+        const formatarTel = (tel) => {
+            const d = soDigitos(tel);
+            if (d.length === 11) return `(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`;
+            if (d.length === 10) return `(${d.slice(0,2)}) ${d.slice(2,6)}-${d.slice(6)}`;
+            return tel || '';
+        };
+        const emailValido = (e) => !e || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
+        const membroPorNome = (nome) => membrosGlobal.find(m => m.nome === nome);
+        const hojeZero = () => { const h = new Date(); h.setHours(0,0,0,0); return h; };
+
+        const montarTexto = (modelo, escala) => {
+            const dataE = new Date(escala.data + "T00:00:00");
+            const vars = {
+                nome: (escala.responsavel || '').split(' ')[0],
+                data: dataE.toLocaleDateString('pt-BR'),
+                diaSemana: dataE.toLocaleDateString('pt-BR', { weekday: 'long' }),
+                tipo: escala.tipo || '',
+                titulo: escala.titulo || '',
+                link: configNotif.link || ''
+            };
+            return modelo.replace(/\{(\w+)\}/g, (m, k) => k in vars ? vars[k] : m).replace(/\n{3,}/g, '\n\n').trim();
+        };
+
+        const atualizarEstatisticas = () => {
+            if (!calendar) return;
+            const viewDate = calendar.getDate();
+            const mesAtual = viewDate.getMonth();
+            const anoAtual = viewDate.getFullYear();
+            
+            const contagem = {};
+            listaNomesGlobal.forEach(nome => contagem[nome] = 0);
+
+            todasEscalas.forEach(escala => {
+                const dataE = new Date(escala.data + "T00:00:00");
+                if (dataE.getMonth() === mesAtual && dataE.getFullYear() === anoAtual && escala.responsavel !== "VAGO") {
+                    contagem[escala.responsavel] = (contagem[escala.responsavel] || 0) + 1;
+                }
+            });
+
+            const listaStats = document.getElementById('listaStats');
+            listaStats.innerHTML = '';
+            
+            Object.entries(contagem)
+                .sort((a, b) => b[1] - a[1])
+                .forEach(([nome, qtd]) => {
+                    listaStats.innerHTML += `
+                        <div class="bg-white/5 border border-white/10 p-2 rounded-lg flex flex-col items-center">
+                            <span class="text-[10px] font-bold text-gray-400 truncate w-full text-center uppercase">${esc(nome.split(' ')[0])}</span>
+                            <span class="text-lg font-black text-yellow-500">${qtd}</span>
+                        </div>
+                    `;
+                });
+        };
 
         document.addEventListener('DOMContentLoaded', () => {
-            calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
-                initialView: 'dayGridMonth', locale: 'pt-br', headerToolbar: { left: 'prev,next', center: 'title', right: 'today' }, events: []
+            const calendarEl = document.getElementById('calendar');
+            calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                height: 'auto',
+                locale: 'pt-br',
+                headerToolbar: { left: 'prev,next', center: 'title', right: 'today' },
+                datesSet: () => atualizarEstatisticas(),
+                eventClick: (info) => {
+                    const escalaId = info.event.id;
+                    const escala = todasEscalas.find(e => e.id === escalaId);
+                    if (escala) {
+                        window.alternarConfirmacao(escala.id, escala.responsavel, escala.confirmado);
+                    }
+                },
+                events: []
             });
             calendar.render();
         });
 
-        window.showTab = (id) => {
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            if(id === 'calendario') setTimeout(() => calendar.render(), 50);
-        };
-
-        onSnapshot(collection(db, "membros"), (snap) => {
+        // ===== Membros =====
+        onSnapshot(collection(db, col("membros")), (snap) => {
             const listaM = document.getElementById('listaMembros');
             const selectM = document.getElementById('selectMembros');
-            listaM.innerHTML = ''; listaNomesGlobal = [];
-            selectM.innerHTML = '<option value="">Selecione...</option><option value="VAGO">-- VAGO --</option>';
-            snap.forEach(d => {
-                const m = d.data().nome; listaNomesGlobal.push(m);
-                listaM.innerHTML += `<li class="p-3 flex justify-between items-center text-gray-700 font-medium">${m} <button onclick="window.removerMembro('${d.id}')" class="admin-only text-red-500 font-bold">EXCLUIR</button></li>`;
-                selectM.innerHTML += `<option value="${m}">${m}</option>`;
+            listaM.innerHTML = ''; listaNomesGlobal = []; membrosGlobal = [];
+            selectM.innerHTML = '<option value="">Selecionar Membro...</option><option value="VAGO">-- VAGO --</option>';
+            const docs = [];
+            snap.forEach(d => docs.push({ id: d.id, ...d.data() }));
+            docs.sort((a, b) => (a.nome || '').localeCompare(b.nome || '', 'pt-BR'));
+            docs.forEach(m => {
+                membrosGlobal.push(m);
+                listaNomesGlobal.push(m.nome);
+                const contatos = [
+                    m.telefone ? `<span class="truncate">📱 ${esc(formatarTel(m.telefone))}</span>` : '',
+                    m.email ? `<span class="truncate">✉️ ${esc(m.email)}</span>` : ''
+                ].filter(Boolean).join('');
+                listaM.innerHTML += `
+                    <li class="bg-white/5 p-2 rounded-lg flex justify-between items-center border border-white/5">
+                        <div class="overflow-hidden mr-2 min-w-0">
+                            <span class="text-[11px] font-semibold truncate block">${esc(m.nome)}</span>
+                            <div class="flex flex-wrap gap-x-3 text-[9px] text-gray-400">${contatos || '<span class="italic text-gray-500">sem contato cadastrado</span>'}</div>
+                        </div>
+                        <div class="flex items-center gap-2 shrink-0">
+                            <button onclick="window.editarMembro('${m.id}')" class="text-yellow-500 hover:text-yellow-400 text-[10px] font-bold" title="Editar">✏️</button>
+                            <button onclick="window.removerMembro('${m.id}')" class="text-red-500 hover:text-red-400" title="Excluir"><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"/></svg></button>
+                        </div>
+                    </li>`;
+                selectM.innerHTML += `<option value="${esc(m.nome)}">${esc(m.nome)}</option>`;
             });
+            atualizarEstatisticas();
+            renderAvisos();
         });
 
-        document.getElementById('btnEscala').onclick = async () => {
-            const data = document.getElementById('dataCulto').value;
-            if (data) {
-                await addDoc(collection(db, "escalas"), { 
-                    data, 
-                    tipo: document.getElementById('tipoCulto').value, 
-                    titulo: document.getElementById('tituloEscala').value, 
-                    responsavel: document.getElementById('selectMembros').value || "VAGO" 
-                });
-                document.getElementById('tituloEscala').value = ""; alert("Salvo!"); showTab('mensal');
-            }
-        };
+        // ===== Configuração de notificações =====
+        const configRef = doc(db, col("config"), "notificacoes");
+        onSnapshot(configRef, (d) => {
+            configNotif = { ...CONFIG_PADRAO, ...(d.exists() ? d.data() : {}) };
+            renderAvisos();
+        });
 
-        onSnapshot(query(collection(db, "escalas"), orderBy("data", "asc")), (snap) => {
+        // ===== Escalas =====
+        onSnapshot(query(collection(db, col("escalas")), orderBy("data", "asc")), (snap) => {
             const listaE = document.getElementById('listaEscalas');
             listaE.innerHTML = '';
             const calendarEvents = [];
-            
-            // Pega a data de hoje e zera as horas para comparar apenas o dia
-            const hoje = new Date();
-            hoje.setHours(0, 0, 0, 0);
+            const hoje = hojeZero();
+            todasEscalas = [];
 
             snap.forEach(d => {
-                const e = d.data();
-                const dataEscala = new Date(e.data + "T00:00:00"); // Garante o fuso local no navegador
-                const dataF = dataEscala.toLocaleDateString('pt-BR');
+                const data = d.data();
+                const obj = { id: d.id, ...data };
+                todasEscalas.push(obj);
                 
-                // 1. Lógica da Lista: Ocultar se for anterior a hoje
+                const dataEscala = new Date(data.data + "T00:00:00");
+                const isVago = data.responsavel === "VAGO";
+                const isConfirmado = data.confirmado === true;
+
+                // Cores por estado
+                let borderColorClass = "border-amber-500";
+                let eventBgColor = "#d97706"; // Âmbar (Pendente)
+                let statusBadge = `<span class="text-[9px] bg-amber-500/20 text-amber-300 font-bold px-1.5 py-0.5 rounded">⏳ Pendente</span>`;
+                let iconTitle = "⏳";
+
+                if (isVago) {
+                    borderColorClass = "border-red-500";
+                    eventBgColor = "#ef4444"; // Vermelho (Vago)
+                    statusBadge = `<span class="text-[9px] bg-red-500/20 text-red-400 font-bold px-1.5 py-0.5 rounded">VAGO</span>`;
+                    iconTitle = "❌";
+                } else if (isConfirmado) {
+                    borderColorClass = "border-emerald-500";
+                    eventBgColor = "#059669"; // Verde Esmeralda (Confirmado)
+                    statusBadge = `<span class="text-[9px] bg-emerald-500/20 text-emerald-300 font-bold px-1.5 py-0.5 rounded">✅ Confirmado</span>`;
+                    iconTitle = "✅";
+                }
+
                 if (dataEscala >= hoje) {
-                    const respDisplay = e.responsavel === "VAGO" 
-                        ? `<span class="text-red-600 font-bold uppercase">VAGO</span>`
-                        : `<span class="uppercase font-black text-gray-800">${e.responsavel}</span>`;
-                    
+                    const dataF = dataEscala.toLocaleDateString('pt-BR');
+                    const respJs = esc(String(data.responsavel).replace(/\\/g, '\\\\').replace(/'/g, "\\'"));
                     listaE.innerHTML += `
-                        <div class="bg-white p-4 rounded-lg shadow border-l-4 border-black flex justify-between items-center">
-                            <div>
-                                <p class="text-xs font-bold text-gray-500">${dataF}${e.titulo ? ' - ' + e.titulo : ''}</p>
-                                <p class="text-sm text-gray-400 italic">${e.tipo}</p>
-                                <p class="text-lg">${respDisplay}</p>
+                        <div class="bg-white/5 p-3 rounded-xl border-l-4 ${borderColorClass} flex justify-between items-center transition-all hover:bg-white/10">
+                            <div class="overflow-hidden mr-2">
+                                <div class="flex items-center gap-2 mb-0.5">
+                                    <p class="text-[9px] text-gray-400 font-bold uppercase tracking-tighter">${dataF} • ${esc(data.tipo)}</p>
+                                    ${statusBadge}
+                                </div>
+                                <h3 class="text-sm font-black truncate ${isVago ? 'text-red-500' : 'text-white'}">${esc(data.responsavel)}</h3>
+                                <p class="text-[10px] italic text-gray-500 truncate">${esc(data.titulo || '')}</p>
                             </div>
-                            <div class="flex gap-2">
-                                <button onclick="window.editarEscala('${d.id}', '${e.responsavel}')" class="admin-only bg-yellow-500 text-white px-2 py-1 rounded text-xs font-bold">EDITAR</button>
-                                <button onclick="window.remover('${d.id}')" class="admin-only bg-red-500 text-white px-2 py-1 rounded text-xs font-bold">EXCLUIR</button>
+                            <div class="flex items-center gap-1 shrink-0">
+                                ${!isVago ? `
+                                    <button onclick="window.alternarConfirmacao('${d.id}', '${respJs}', ${isConfirmado})" 
+                                            class="${isConfirmado ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-300'} p-1.5 rounded text-[9px] font-bold">
+                                        ${isConfirmado ? 'DESFAZER' : 'CONFIRMAR'}
+                                    </button>
+                                    <button onclick="window.abrirAviso('${d.id}')" class="bg-fuchsia-500/20 text-fuchsia-300 p-1.5 rounded text-[9px] font-bold" title="Enviar aviso">🔔</button>
+                                ` : ''}
+                                <button onclick="window.editarEscala('${d.id}', '${respJs}')" class="bg-yellow-500/20 text-yellow-500 p-1.5 rounded text-[9px] font-bold">EDIT</button>
+                                <button onclick="window.remover('${d.id}')" class="bg-red-500/20 text-red-500 p-1.5 rounded text-[9px] font-bold uppercase">X</button>
                             </div>
                         </div>`;
                 }
 
-                // 2. Lógica do Calendário: Sempre mostrar tudo
+                const tituloBase = data.titulo ? `${data.responsavel}\n(${data.titulo})` : data.responsavel;
                 calendarEvents.push({
-                    title: e.titulo ? `${e.responsavel}\n(${e.titulo})` : e.responsavel,
-                    start: e.data,
-                    backgroundColor: e.responsavel === "VAGO" ? "#ef4444" : "#1e40af",
+                    id: d.id,
+                    title: `${iconTitle} ${tituloBase}`,
+                    start: data.data,
+                    backgroundColor: eventBgColor,
                     borderColor: 'transparent'
                 });
             });
-            if(calendar) { calendar.removeAllEvents(); calendar.addEventSource(calendarEvents); }
+
+            if (calendar) {
+                calendar.removeAllEvents();
+                calendar.addEventSource(calendarEvents);
+            }
+            atualizarEstatisticas();
+            renderAvisos();
         });
 
-        window.editarEscala = async (id, atual) => {
-            const n = prompt("Novo responsável (" + listaNomesGlobal.join(", ") + "):", atual);
-            if (n !== null) await updateDoc(doc(db, "escalas", id), { responsavel: n });
+        // ===== Painel de avisos =====
+        function renderAvisos() {
+            const resumo = document.getElementById('resumoNotificacoes');
+            const lista = document.getElementById('listaAvisos');
+            if (!resumo || !lista) return;
+
+            const chip = (ativo, txt) => `<span class="px-2 py-1 rounded-full border ${ativo ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300' : 'bg-white/5 border-white/10 text-gray-500 line-through'}">${txt}</span>`;
+            const emailAuto = configNotif.emailjsServiceId && configNotif.emailjsTemplateId && configNotif.emailjsPublicKey;
+            resumo.innerHTML = chip(configNotif.whatsappAtivo, '💬 WhatsApp')
+                + chip(configNotif.emailAtivo, `✉️ E-mail ${emailAuto ? '(automático)' : '(manual)'}`)
+                + `<span class="px-2 py-1 rounded-full border bg-white/5 border-white/10 text-gray-300">⏰ ${configNotif.antecedenciaDias} dia(s) antes</span>`;
+
+            const hoje = hojeZero();
+            const limite = new Date(hoje); limite.setDate(limite.getDate() + Number(configNotif.antecedenciaDias || 0));
+            const proximas = todasEscalas.filter(e => {
+                const dt = new Date(e.data + "T00:00:00");
+                return dt >= hoje && dt <= limite && e.responsavel !== "VAGO";
+            });
+
+            if (!configNotif.whatsappAtivo && !configNotif.emailAtivo) {
+                lista.innerHTML = `<p class="text-[11px] text-gray-500 italic">Notificações desativadas. Ative em ⚙️ Configurar.</p>`;
+                return;
+            }
+            if (!proximas.length) {
+                lista.innerHTML = `<p class="text-[11px] text-gray-500 italic">Nenhuma escala nos próximos ${configNotif.antecedenciaDias} dia(s).</p>`;
+                return;
+            }
+            lista.innerHTML = proximas.map(e => {
+                const m = membroPorNome(e.responsavel) || {};
+                const dataF = new Date(e.data + "T00:00:00").toLocaleDateString('pt-BR');
+                const btnW = configNotif.whatsappAtivo
+                    ? `<button onclick="window.notificarWhats('${e.id}')" ${m.telefone ? '' : 'disabled title="Sem telefone cadastrado"'} class="px-2 py-1 rounded text-[9px] font-bold ${m.telefone ? 'bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30' : 'bg-white/5 text-gray-600 cursor-not-allowed'}">💬${e.avisadoWhatsEm ? ' ✓' : ''}</button>` : '';
+                const btnE = configNotif.emailAtivo
+                    ? `<button onclick="window.notificarEmail('${e.id}')" ${m.email ? '' : 'disabled title="Sem e-mail cadastrado"'} class="px-2 py-1 rounded text-[9px] font-bold ${m.email ? 'bg-sky-500/20 text-sky-300 hover:bg-sky-500/30' : 'bg-white/5 text-gray-600 cursor-not-allowed'}">✉️${e.avisadoEmailEm ? ' ✓' : ''}</button>` : '';
+                return `
+                    <div class="bg-white/5 p-2 rounded-lg flex justify-between items-center border border-white/5">
+                        <div class="overflow-hidden mr-2 min-w-0">
+                            <p class="text-[11px] font-semibold truncate">${esc(e.responsavel)} ${e.confirmado ? '<span class="text-emerald-400">✅</span>' : ''}</p>
+                            <p class="text-[9px] text-gray-400">${dataF} • ${esc(e.tipo)}</p>
+                        </div>
+                        <div class="flex gap-1 shrink-0">${btnW}${btnE}</div>
+                    </div>`;
+            }).join('');
+        }
+
+        // ===== Envio de avisos =====
+        const registrarAviso = async (id, campo) => {
+            try { await updateDoc(doc(db, col("escalas"), id), { [campo]: new Date().toISOString() }); } catch (err) { console.warn(err); }
         };
-        window.remover = async (id) => { if(confirm("Excluir?")) await deleteDoc(doc(db, "escalas", id)); };
-        window.removerMembro = async (id) => { if(confirm("Excluir?")) await deleteDoc(doc(db, "membros", id)); };
+
+        window.notificarWhats = async (id) => {
+            const e = todasEscalas.find(x => x.id === id); if (!e) return;
+            const m = membroPorNome(e.responsavel);
+            const num = numeroWhats(m?.telefone);
+            if (!num) { alert(`${e.responsavel} não tem telefone cadastrado. Edite o integrante na Equipe.`); return; }
+            const texto = montarTexto(configNotif.mensagem, e);
+            window.open(`https://wa.me/${num}?text=${encodeURIComponent(texto)}`, '_blank');
+            await registrarAviso(id, 'avisadoWhatsEm');
+        };
+
+        window.notificarEmail = async (id) => {
+            const e = todasEscalas.find(x => x.id === id); if (!e) return;
+            const m = membroPorNome(e.responsavel);
+            if (!m?.email) { alert(`${e.responsavel} não tem e-mail cadastrado. Edite o integrante na Equipe.`); return; }
+            const assunto = montarTexto(configNotif.assunto, e);
+            const corpo = montarTexto(configNotif.mensagem, e);
+            const cc = (configNotif.emailsCopia || '').split(',').map(s => s.trim()).filter(Boolean).join(',');
+
+            const { emailjsServiceId, emailjsTemplateId, emailjsPublicKey } = configNotif;
+            if (emailjsServiceId && emailjsTemplateId && emailjsPublicKey) {
+                try {
+                    const resp = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            service_id: emailjsServiceId,
+                            template_id: emailjsTemplateId,
+                            user_id: emailjsPublicKey,
+                            template_params: { to_email: m.email, to_name: m.nome, cc, subject: assunto, message: corpo }
+                        })
+                    });
+                    if (!resp.ok) throw new Error(await resp.text());
+                    await registrarAviso(id, 'avisadoEmailEm');
+                    alert(`E-mail enviado para ${m.email} ✅`);
+                } catch (err) {
+                    alert('Falha ao enviar pelo EmailJS: ' + err.message);
+                }
+                return;
+            }
+            const params = [];
+            if (cc) params.push('cc=' + encodeURIComponent(cc));
+            params.push('subject=' + encodeURIComponent(assunto));
+            params.push('body=' + encodeURIComponent(corpo));
+            window.location.href = `mailto:${encodeURIComponent(m.email)}?${params.join('&')}`;
+            await registrarAviso(id, 'avisadoEmailEm');
+        };
+
+        window.abrirAviso = (id) => {
+            const e = todasEscalas.find(x => x.id === id); if (!e) return;
+            const opcoes = [];
+            if (configNotif.whatsappAtivo) opcoes.push('1 = WhatsApp');
+            if (configNotif.emailAtivo) opcoes.push('2 = E-mail');
+            if (!opcoes.length) { alert('Notificações desativadas. Ative em Notificações → ⚙️ Configurar.'); return; }
+            if (opcoes.length === 1) {
+                return configNotif.whatsappAtivo ? window.notificarWhats(id) : window.notificarEmail(id);
+            }
+            const r = prompt(`Avisar ${e.responsavel} por:\n${opcoes.join('\n')}`, '1');
+            if (r === '1') window.notificarWhats(id);
+            else if (r === '2') window.notificarEmail(id);
+        };
+
+        window.enviarResumoGrupo = () => {
+            const hoje = hojeZero();
+            const limite = new Date(hoje); limite.setDate(limite.getDate() + 30);
+            const linhas = todasEscalas
+                .filter(e => { const dt = new Date(e.data + "T00:00:00"); return dt >= hoje && dt <= limite; })
+                .map(e => {
+                    const dt = new Date(e.data + "T00:00:00");
+                    const dia = dt.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit' });
+                    const st = e.responsavel === 'VAGO' ? '❌' : (e.confirmado ? '✅' : '⏳');
+                    return `${st} ${dia} • ${e.tipo} — *${e.responsavel}*${e.titulo ? ` (${e.titulo})` : ''}`;
+                });
+            if (!linhas.length) { alert('Nenhuma escala nos próximos 30 dias.'); return; }
+            const texto = `🎧 *Escala do Áudio — próximos 30 dias*\n\n${linhas.join('\n')}\n\n✅ confirmado  ⏳ pendente  ❌ vago\nConfirme em: ${configNotif.link}`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, '_blank');
+        };
+
+        // ===== Modal de configuração =====
+        const cfgCampos = {
+            cfgWhatsAtivo: ['whatsappAtivo', 'checkbox'],
+            cfgEmailAtivo: ['emailAtivo', 'checkbox'],
+            cfgEmailsCopia: ['emailsCopia'],
+            cfgAssunto: ['assunto'],
+            cfgAntecedencia: ['antecedenciaDias', 'number'],
+            cfgLink: ['link'],
+            cfgMensagem: ['mensagem'],
+            cfgEmailjsService: ['emailjsServiceId'],
+            cfgEmailjsTemplate: ['emailjsTemplateId'],
+            cfgEmailjsKey: ['emailjsPublicKey']
+        };
+
+        window.abrirConfigNotificacoes = () => {
+            Object.entries(cfgCampos).forEach(([elId, [chave, tipo]]) => {
+                const el = document.getElementById(elId);
+                if (tipo === 'checkbox') el.checked = !!configNotif[chave];
+                else el.value = configNotif[chave] ?? '';
+            });
+            document.getElementById('modalConfig').classList.remove('modal-hidden');
+        };
+        window.fecharConfig = () => document.getElementById('modalConfig').classList.add('modal-hidden');
+
+        document.getElementById('btnSalvarConfig').onclick = async () => {
+            const novo = {};
+            Object.entries(cfgCampos).forEach(([elId, [chave, tipo]]) => {
+                const el = document.getElementById(elId);
+                novo[chave] = tipo === 'checkbox' ? el.checked : tipo === 'number' ? Number(el.value) : el.value.trim();
+            });
+            const invalidos = novo.emailsCopia.split(',').map(s => s.trim()).filter(Boolean).filter(e => !emailValido(e));
+            if (invalidos.length) { alert('E-mail(s) inválido(s): ' + invalidos.join(', ')); return; }
+            if (!novo.mensagem) novo.mensagem = CONFIG_PADRAO.mensagem;
+            if (!novo.assunto) novo.assunto = CONFIG_PADRAO.assunto;
+            try {
+                await setDoc(configRef, novo, { merge: true });
+                window.fecharConfig();
+            } catch (err) {
+                alert('Erro ao salvar configuração: ' + err.message);
+            }
+        };
+
+        // Alternar confirmação do membro
+        window.alternarConfirmacao = async (id, responsavel, statusAtual) => {
+            if (responsavel === "VAGO") {
+                alert("Esta escala está VAGA. Primeiro atribua um integrante.");
+                return;
+            }
+
+            const novoStatus = !statusAtual;
+            const msg = novoStatus 
+                ? `Confirmar presença de ${responsavel} nesta escala?` 
+                : `Deseja desmarcar a confirmação de ${responsavel}?`;
+
+            if (confirm(msg)) {
+                await updateDoc(doc(db, col("escalas"), id), { confirmado: novoStatus });
+            }
+        };
+
+        // Salvar Nova Escala (nasce como pendente: false)
+        document.getElementById('btnEscala').onclick = async () => {
+            const data = document.getElementById('dataCulto').value;
+            const resp = document.getElementById('selectMembros').value || "VAGO";
+            if (data) {
+                await addDoc(collection(db, col("escalas")), { 
+                    data, 
+                    tipo: document.getElementById('tipoCulto').value, 
+                    titulo: document.getElementById('tituloEscala').value, 
+                    responsavel: resp,
+                    confirmado: false
+                });
+                document.getElementById('tituloEscala').value = "";
+                document.getElementById('dataCulto').value = "";
+            }
+        };
+
+        // Adicionar membro (com telefone e e-mail)
+        document.getElementById('btnMembro').onclick = async () => {
+            const nome = document.getElementById('nomeMembro').value.trim();
+            const telefone = document.getElementById('telefoneMembro').value.trim();
+            const email = document.getElementById('emailMembro').value.trim();
+            if (!nome) return;
+            if (listaNomesGlobal.includes(nome)) { alert('Já existe um integrante com esse nome.'); return; }
+            if (!emailValido(email)) { alert('E-mail inválido.'); return; }
+            await addDoc(collection(db, col("membros")), { nome, telefone, email });
+            ['nomeMembro', 'telefoneMembro', 'emailMembro'].forEach(id => document.getElementById(id).value = '');
+        };
+
+        // Editar membro
+        window.editarMembro = (id) => {
+            const m = membrosGlobal.find(x => x.id === id); if (!m) return;
+            document.getElementById('editMembroId').value = id;
+            document.getElementById('editMembroNomeAntigo').value = m.nome;
+            document.getElementById('editMembroNome').value = m.nome || '';
+            document.getElementById('editMembroTelefone').value = m.telefone || '';
+            document.getElementById('editMembroEmail').value = m.email || '';
+            document.getElementById('modalMembro').classList.remove('modal-hidden');
+        };
+        window.fecharModalMembro = () => document.getElementById('modalMembro').classList.add('modal-hidden');
+
+        document.getElementById('btnSalvarMembro').onclick = async () => {
+            const id = document.getElementById('editMembroId').value;
+            const antigo = document.getElementById('editMembroNomeAntigo').value;
+            const nome = document.getElementById('editMembroNome').value.trim();
+            const telefone = document.getElementById('editMembroTelefone').value.trim();
+            const email = document.getElementById('editMembroEmail').value.trim();
+            if (!nome) { alert('Informe o nome.'); return; }
+            if (!emailValido(email)) { alert('E-mail inválido.'); return; }
+            if (nome !== antigo && listaNomesGlobal.includes(nome)) { alert('Já existe um integrante com esse nome.'); return; }
+            try {
+                await updateDoc(doc(db, col("membros"), id), { nome, telefone, email });
+                // Se o nome mudou, atualiza as escalas que usam o nome antigo
+                if (nome !== antigo) {
+                    const snap = await getDocs(query(collection(db, col("escalas")), where("responsavel", "==", antigo)));
+                    if (!snap.empty) {
+                        const batch = writeBatch(db);
+                        snap.forEach(d => batch.update(d.ref, { responsavel: nome }));
+                        await batch.commit();
+                    }
+                }
+                window.fecharModalMembro();
+            } catch (err) {
+                alert('Erro ao salvar: ' + err.message);
+            }
+        };
+
+        window.editarEscala = (id, atual) => {
+            const modal = document.getElementById('modalEditar');
+            const selectEdit = document.getElementById('editSelectMembro');
+            document.getElementById('editEscalaId').value = id;
+            selectEdit.innerHTML = '<option value="VAGO">-- VAGO --</option>';
+            listaNomesGlobal.forEach(nome => {
+                const selected = nome === atual ? 'selected' : '';
+                selectEdit.innerHTML += `<option value="${esc(nome)}" ${selected}>${esc(nome)}</option>`;
+            });
+            modal.classList.remove('modal-hidden');
+        };
+
+        window.fecharModal = () => document.getElementById('modalEditar').classList.add('modal-hidden');
+
+        document.getElementById('btnSalvarEdicao').onclick = async () => {
+            const id = document.getElementById('editEscalaId').value;
+            const novo = document.getElementById('editSelectMembro').value;
+            // Ao alterar o responsável, reinicia a confirmação e os avisos
+            await updateDoc(doc(db, col("escalas"), id), { responsavel: novo, confirmado: false, avisadoWhatsEm: null, avisadoEmailEm: null });
+            window.fecharModal();
+        };
+
+        window.remover = async (id) => { if(confirm("Excluir escala?")) await deleteDoc(doc(db, col("escalas"), id)); };
+        window.removerMembro = async (id) => { if(confirm("Excluir membro?")) await deleteDoc(doc(db, col("membros"), id)); };
     </script>
 </body>
 </html>

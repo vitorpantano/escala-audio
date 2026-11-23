@@ -153,6 +153,7 @@ async function enviarWhats(telefone, apikey, texto) {
     if (!res.ok || /invalid|error|not\s+(?:a\s+)?valid|blocked/i.test(corpo)) {
         throw new Error(`CallMeBot ${res.status}: ${corpo.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 200)}`);
     }
+    console.log(`   CallMeBot respondeu: ${corpo.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 160)}`);
     await esperar(4000); // o CallMeBot pede intervalo entre mensagens
 }
 
@@ -198,7 +199,7 @@ async function main() {
 
         for (const c of canais) {
             if (!c.ativo) continue;
-            if (e[c.campo] === e.responsavel) continue; // já enviado para este responsável
+            if (e[c.campo] === e.responsavel) { console.log(`⏭️  ${c.nome} já enviado antes: ${rotulo}`); continue; }
             if (!c.pronto) { console.log(`⚠️  ${c.nome} não enviado: ${rotulo} — ${c.motivo}`); continue; }
             try {
                 await c.enviar();

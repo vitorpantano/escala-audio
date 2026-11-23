@@ -195,6 +195,18 @@
                     <label class="text-[10px] text-gray-400 uppercase mb-1 block">E-mail</label>
                     <input id="editMembroEmail" type="email" placeholder="nome@email.com">
                 </div>
+                <div>
+                    <label class="text-[10px] text-gray-400 uppercase mb-1 block">Chave CallMeBot (WhatsApp automático)</label>
+                    <input id="editMembroCallmebot" type="text" placeholder="Ex: 123456">
+                    <details class="mt-1">
+                        <summary class="cursor-pointer text-[10px] text-fuchsia-300">Como o integrante consegue a chave?</summary>
+                        <ol class="text-[10px] text-gray-400 list-decimal ml-4 mt-1 space-y-1">
+                            <li>Abrir <a href="https://www.callmebot.com/blog/free-api-whatsapp-messages/" target="_blank" class="underline text-fuchsia-300">callmebot.com</a> e salvar nos contatos o número do CallMeBot indicado lá.</li>
+                            <li>Mandar pelo WhatsApp para esse número: <code class="text-white">I allow callmebot to send me messages</code></li>
+                            <li>O bot responde com a chave (apikey). É só colar aqui.</li>
+                        </ol>
+                    </details>
+                </div>
             </div>
             <div class="flex gap-2">
                 <button onclick="window.fecharModalMembro()" class="flex-1 bg-white/10 py-2 rounded-lg font-bold text-xs uppercase hover:bg-white/20">Cancelar</button>
@@ -237,7 +249,7 @@
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="text-[10px] text-gray-400 uppercase mb-1 block">Avisar com antecedência de</label>
+                        <label class="text-[10px] text-gray-400 uppercase mb-1 block">Lista de avisos manuais: próximos</label>
                         <select id="cfgAntecedencia">
                             <option value="1">1 dia</option>
                             <option value="2">2 dias</option>
@@ -249,6 +261,15 @@
                     <div>
                         <label class="text-[10px] text-gray-400 uppercase mb-1 block">Link do site na mensagem</label>
                         <input id="cfgLink" type="text">
+                    </div>
+                </div>
+
+                <div class="space-y-2 bg-fuchsia-500/10 border border-fuchsia-500/30 rounded-lg p-3">
+                    <label class="flex items-center gap-2 font-bold"><input type="checkbox" id="cfgAutoAtivo"> 🤖 Envio automático</label>
+                    <p class="text-[10px] text-gray-400">Todo dia às 9h o robô envia e-mail e WhatsApp para quem está escalado. WhatsApp automático só vai para quem tem a chave CallMeBot cadastrada (✏️ no integrante).</p>
+                    <div>
+                        <label class="text-[10px] text-gray-400 uppercase mb-1 block">Lembretes (dias antes, separados por vírgula)</label>
+                        <input id="cfgLembretes" type="text" placeholder="7, 3">
                     </div>
                 </div>
 
@@ -303,12 +324,14 @@
             emailAtivo: true,
             emailsCopia: "",
             assunto: "Escala Áudio — {data} ({tipo})",
-            antecedenciaDias: 3,
+            antecedenciaDias: 7,
             link: "https://vitorpantano.github.io/escala-audio/",
             mensagem: "Olá {nome}! 🎧\n\nLembrete da escala do Ministério de Áudio:\n📅 {diaSemana}, {data} — {tipo}\n{titulo}\n\nConfirme sua presença em: {link}\n\nDeus abençoe! 🙌",
             emailjsServiceId: "",
             emailjsTemplateId: "",
-            emailjsPublicKey: ""
+            emailjsPublicKey: "",
+            automaticoAtivo: true,
+            lembretesDias: [7, 3]
         };
         let configNotif = { ...CONFIG_PADRAO };
 
@@ -408,7 +431,8 @@
                 listaNomesGlobal.push(m.nome);
                 const contatos = [
                     m.telefone ? `<span class="truncate">📱 ${esc(formatarTel(m.telefone))}</span>` : '',
-                    m.email ? `<span class="truncate">✉️ ${esc(m.email)}</span>` : ''
+                    m.email ? `<span class="truncate">✉️ ${esc(m.email)}</span>` : '',
+                    m.callmebotKey ? `<span class="text-fuchsia-300" title="WhatsApp automático ativado">🤖 auto</span>` : ''
                 ].filter(Boolean).join('');
                 listaM.innerHTML += `
                     <li class="bg-white/5 p-2 rounded-lg flex justify-between items-center border border-white/5">
@@ -524,7 +548,7 @@
             const emailAuto = configNotif.emailjsServiceId && configNotif.emailjsTemplateId && configNotif.emailjsPublicKey;
             resumo.innerHTML = chip(configNotif.whatsappAtivo, '💬 WhatsApp')
                 + chip(configNotif.emailAtivo, `✉️ E-mail ${emailAuto ? '(automático)' : '(manual)'}`)
-                + `<span class="px-2 py-1 rounded-full border bg-white/5 border-white/10 text-gray-300">⏰ ${configNotif.antecedenciaDias} dia(s) antes</span>`;
+                + chip(configNotif.automaticoAtivo, `🤖 Automático: ${(configNotif.lembretesDias || []).join(' e ')} dias antes`);
 
             const hoje = hojeZero();
             const limite = new Date(hoje); limite.setDate(limite.getDate() + Number(configNotif.antecedenciaDias || 0));
@@ -544,6 +568,10 @@
             lista.innerHTML = proximas.map(e => {
                 const m = membroPorNome(e.responsavel) || {};
                 const dataF = new Date(e.data + "T00:00:00").toLocaleDateString('pt-BR');
+                const autoEnviados = (configNotif.lembretesDias || []).flatMap(n => [
+                    e['autoEmail' + n + 'd'] === e.responsavel ? `✉️${n}d` : '',
+                    e['autoWhats' + n + 'd'] === e.responsavel ? `💬${n}d` : ''
+                ]).filter(Boolean);
                 const btnW = configNotif.whatsappAtivo
                     ? `<button onclick="window.notificarWhats('${e.id}')" ${m.telefone ? '' : 'disabled title="Sem telefone cadastrado"'} class="px-2 py-1 rounded text-[9px] font-bold ${m.telefone ? 'bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30' : 'bg-white/5 text-gray-600 cursor-not-allowed'}">💬${e.avisadoWhatsEm ? ' ✓' : ''}</button>` : '';
                 const btnE = configNotif.emailAtivo
@@ -553,6 +581,7 @@
                         <div class="overflow-hidden mr-2 min-w-0">
                             <p class="text-[11px] font-semibold truncate">${esc(e.responsavel)} ${e.confirmado ? '<span class="text-emerald-400">✅</span>' : ''}</p>
                             <p class="text-[9px] text-gray-400">${dataF} • ${esc(e.tipo)}</p>
+                            ${autoEnviados.length ? `<p class="text-[9px] text-fuchsia-300" title="Lembretes automáticos já enviados">🤖 ${autoEnviados.join(' ')}</p>` : ''}
                         </div>
                         <div class="flex gap-1 shrink-0">${btnW}${btnE}</div>
                     </div>`;
@@ -652,13 +681,16 @@
             cfgMensagem: ['mensagem'],
             cfgEmailjsService: ['emailjsServiceId'],
             cfgEmailjsTemplate: ['emailjsTemplateId'],
-            cfgEmailjsKey: ['emailjsPublicKey']
+            cfgEmailjsKey: ['emailjsPublicKey'],
+            cfgAutoAtivo: ['automaticoAtivo', 'checkbox'],
+            cfgLembretes: ['lembretesDias', 'lista']
         };
 
         window.abrirConfigNotificacoes = () => {
             Object.entries(cfgCampos).forEach(([elId, [chave, tipo]]) => {
                 const el = document.getElementById(elId);
                 if (tipo === 'checkbox') el.checked = !!configNotif[chave];
+                else if (tipo === 'lista') el.value = (configNotif[chave] || []).join(', ');
                 else el.value = configNotif[chave] ?? '';
             });
             document.getElementById('modalConfig').classList.remove('modal-hidden');
@@ -669,8 +701,12 @@
             const novo = {};
             Object.entries(cfgCampos).forEach(([elId, [chave, tipo]]) => {
                 const el = document.getElementById(elId);
-                novo[chave] = tipo === 'checkbox' ? el.checked : tipo === 'number' ? Number(el.value) : el.value.trim();
+                novo[chave] = tipo === 'checkbox' ? el.checked
+                    : tipo === 'number' ? Number(el.value)
+                    : tipo === 'lista' ? [...new Set(el.value.split(/[,;\s]+/).map(Number).filter(n => Number.isInteger(n) && n >= 0))].sort((a, b) => b - a)
+                    : el.value.trim();
             });
+            if (novo.automaticoAtivo && !novo.lembretesDias.length) { alert('Informe ao menos um lembrete (ex: 7, 3).'); return; }
             const invalidos = novo.emailsCopia.split(',').map(s => s.trim()).filter(Boolean).filter(e => !emailValido(e));
             if (invalidos.length) { alert('E-mail(s) inválido(s): ' + invalidos.join(', ')); return; }
             if (!novo.mensagem) novo.mensagem = CONFIG_PADRAO.mensagem;
@@ -737,6 +773,7 @@
             document.getElementById('editMembroNome').value = m.nome || '';
             document.getElementById('editMembroTelefone').value = m.telefone || '';
             document.getElementById('editMembroEmail').value = m.email || '';
+            document.getElementById('editMembroCallmebot').value = m.callmebotKey || '';
             document.getElementById('modalMembro').classList.remove('modal-hidden');
         };
         window.fecharModalMembro = () => document.getElementById('modalMembro').classList.add('modal-hidden');
@@ -747,11 +784,13 @@
             const nome = document.getElementById('editMembroNome').value.trim();
             const telefone = document.getElementById('editMembroTelefone').value.trim();
             const email = document.getElementById('editMembroEmail').value.trim();
+            const callmebotKey = document.getElementById('editMembroCallmebot').value.trim();
+            if (callmebotKey && !telefone) { alert('Para o WhatsApp automático, cadastre também o telefone.'); return; }
             if (!nome) { alert('Informe o nome.'); return; }
             if (!emailValido(email)) { alert('E-mail inválido.'); return; }
             if (nome !== antigo && listaNomesGlobal.includes(nome)) { alert('Já existe um integrante com esse nome.'); return; }
             try {
-                await updateDoc(doc(db, col("membros"), id), { nome, telefone, email });
+                await updateDoc(doc(db, col("membros"), id), { nome, telefone, email, callmebotKey });
                 // Se o nome mudou, atualiza as escalas que usam o nome antigo
                 if (nome !== antigo) {
                     const snap = await getDocs(query(collection(db, col("escalas")), where("responsavel", "==", antigo)));

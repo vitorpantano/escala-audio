@@ -147,7 +147,7 @@ async function enviarEmail(para, cc, assunto, texto) {
 
 async function enviarWhats(telefone, apikey, texto) {
     if (SIMULAR) return;
-    const url = `https://api.callmebot.com/whatsapp.php?phone=${numeroWhats(telefone)}&apikey=${encodeURIComponent(apikey)}&text=${encodeURIComponent(texto)}`;
+    const url = `https://api.callmebot.com/whatsapp.php?phone=${encodeURIComponent("+" + numeroWhats(telefone))}&apikey=${encodeURIComponent(apikey)}&text=${encodeURIComponent(texto)}`;
     const res = await fetch(url);
     const corpo = await res.text();
     if (!res.ok || /invalid|error|not\s+(?:a\s+)?valid|blocked/i.test(corpo)) {

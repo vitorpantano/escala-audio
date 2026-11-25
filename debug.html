@@ -6,83 +6,129 @@
     <title>[DEBUG] Dashboard Áudio - Bola de Neve Sorocaba</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
+    :root {
+        --bg: #f4f6fb;
+        --card: #ffffff;
+        --border: #e5e8f0;
+        --text: #0f172a;
+        --muted: #64748b;
+        --primary: #4f46e5;
+        --primary-soft: #eef2ff;
+    }
     body {
         font-family: 'Inter', sans-serif;
-        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-        color: #f8fafc;
+        background: var(--bg);
+        color: var(--text);
         min-height: 100vh;
+        -webkit-font-smoothing: antialiased;
     }
     .glass-card {
-        background: rgba(255, 255, 255, 0.05);
-        backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: var(--card);
+        border: 1px solid var(--border);
         border-radius: 16px;
-        height: 100%;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 4px 16px rgba(15, 23, 42, 0.04);
+    }
+    .card-title {
+        display: flex; align-items: center; gap: 0.6rem;
+        font-size: 0.95rem; font-weight: 700; color: var(--text);
+    }
+    .card-icon {
+        width: 32px; height: 32px; border-radius: 10px;
+        display: inline-flex; align-items: center; justify-content: center;
+        font-size: 15px; flex-shrink: 0;
     }
 
-    .fc { font-size: 0.85rem; }
-    .fc .fc-col-header-cell-cushion { color: #000000 !important; font-weight: 800; text-transform: uppercase; }
-    .fc .fc-daygrid-day-number { color: #e5e7eb !important; font-weight: 600; }
-    .fc .fc-event-main { color: #f9fafb !important; }
-    .fc-toolbar-title { color: #fbbf24 !important; font-size: 1.1rem !important; font-weight: 800; }
-    .fc-button-primary { background-color: rgba(255,255,255,0.1) !important; border: none !important; color: #e5e7eb !important; }
-    .fc-event { border-radius: 6px !important; padding: 3px !important; border: none !important; cursor: pointer; transition: transform 0.1s ease; }
-    .fc-event:hover { transform: scale(1.02); filter: brightness(1.1); }
-    .fc-event-title { white-space: normal !important; line-height: 1.15; font-size: 0.78rem; }
-    
-    input, select { 
-        background: rgba(0,0,0,0.3) !important; 
-        color: white !important; 
-        border: 1px solid rgba(255,255,255,0.1) !important; 
-        padding: 8px;
-        border-radius: 8px;
+    /* FullCalendar — tema claro */
+    .fc { font-size: 0.85rem; --fc-border-color: #edf0f5; --fc-today-bg-color: #eef2ff; --fc-page-bg-color: #ffffff; }
+    .fc .fc-scrollgrid { border-radius: 12px; overflow: hidden; }
+    .fc .fc-col-header-cell { background: #f8fafc; }
+    .fc .fc-col-header-cell-cushion { color: #64748b !important; font-weight: 700; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.06em; padding: 8px 4px !important; }
+    .fc .fc-daygrid-day-number { color: #334155 !important; font-weight: 600; font-size: 0.78rem; padding: 6px 8px !important; }
+    .fc .fc-day-other .fc-daygrid-day-number { color: #cbd5e1 !important; }
+    .fc .fc-day-today .fc-daygrid-day-number { color: #4f46e5 !important; font-weight: 800; }
+    .fc .fc-event-main { color: #ffffff !important; }
+    .fc-toolbar-title { color: #0f172a !important; font-size: 1.15rem !important; font-weight: 800; }
+    @media (max-width: 640px) { .fc-toolbar-title { font-size: 0.95rem !important; } }
+    .fc .fc-button-primary { background-color: #ffffff !important; border: 1px solid #e2e8f0 !important; color: #334155 !important; box-shadow: none !important; font-weight: 600; text-transform: capitalize; border-radius: 8px !important; }
+    .fc .fc-button-primary:hover { background-color: #f1f5f9 !important; }
+    .fc .fc-button-primary:disabled { opacity: 0.5; }
+    .fc .fc-button-group > .fc-button { border-radius: 8px !important; margin-right: 4px; }
+    .fc-event { border-radius: 6px !important; padding: 3px 4px !important; border: none !important; cursor: pointer; transition: transform 0.1s ease, box-shadow 0.1s ease; box-shadow: 0 1px 2px rgba(15,23,42,0.12); }
+    .fc-event:hover { transform: translateY(-1px); box-shadow: 0 3px 8px rgba(15,23,42,0.18); }
+    .fc-event-title { white-space: normal !important; line-height: 1.15; font-size: 0.76rem; font-weight: 600; }
+
+    input, select {
+        background: #ffffff !important;
+        color: #0f172a !important;
+        border: 1px solid #dfe3ec !important;
+        padding: 9px 11px;
+        border-radius: 10px;
         width: 100%;
         outline: none;
+        font-size: 0.85rem;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
     }
     textarea {
-        background: rgba(0,0,0,0.3) !important;
-        color: white !important;
-        border: 1px solid rgba(255,255,255,0.1) !important;
-        padding: 8px;
-        border-radius: 8px;
+        background: #ffffff !important;
+        color: #0f172a !important;
+        border: 1px solid #dfe3ec !important;
+        padding: 9px 11px;
+        border-radius: 10px;
         width: 100%;
         outline: none;
         font-size: 0.8rem;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
     }
-    input[type="checkbox"] { width: auto; accent-color: #fbbf24; }
-    input:focus, textarea:focus { border-color: #fbbf24 !important; }
-    option { background: #1e293b; color: white; }
+    input::placeholder, textarea::placeholder { color: #94a3b8; }
+    input[type="checkbox"] { width: 16px; height: 16px; padding: 0; accent-color: #4f46e5; }
+    input:focus, select:focus, textarea:focus { border-color: #6366f1 !important; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15); }
+    option { background: #ffffff; color: #0f172a; }
+
+    .field-label { font-size: 0.68rem; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; display: block; }
+
+    .btn { padding: 9px 14px; border-radius: 10px; font-weight: 600; font-size: 0.8rem; transition: background-color 0.15s ease, box-shadow 0.15s ease; }
+    .btn-primary { background: #4f46e5; color: #fff; box-shadow: 0 1px 2px rgba(79,70,229,0.3); }
+    .btn-primary:hover { background: #4338ca; }
+    .btn-success { background: #059669; color: #fff; box-shadow: 0 1px 2px rgba(5,150,105,0.3); }
+    .btn-success:hover { background: #047857; }
+    .btn-ghost { background: #f1f5f9; color: #334155; }
+    .btn-ghost:hover { background: #e2e8f0; }
 
     .custom-scroll::-webkit-scrollbar { width: 6px; }
     .custom-scroll::-webkit-scrollbar-track { background: transparent; }
-    .custom-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
-    
+    .custom-scroll::-webkit-scrollbar-thumb { background: #d6dbe5; border-radius: 10px; }
+
     .modal-hidden { display: none !important; }
 </style>
 
 </head>
-<body class="p-4 md:p-6">
+<body class="p-4 md:p-8">
 
     <!-- Barra de DEBUG -->
-    <div class="max-w-[1600px] mx-auto mb-4 flex flex-col sm:flex-row items-center justify-between gap-2 bg-fuchsia-600/20 border border-fuchsia-500/40 rounded-xl px-4 py-2 text-xs">
-        <span class="font-black text-fuchsia-300 uppercase tracking-widest">🧪 Modo Debug — versão de testes</span>
+    <div class="max-w-[1600px] mx-auto mb-5 flex flex-col sm:flex-row items-center justify-between gap-2 bg-amber-50 border border-amber-200 rounded-xl px-4 py-2 text-xs text-amber-900">
+        <span class="font-bold uppercase tracking-wider flex items-center gap-2"><span class="inline-block w-2 h-2 rounded-full bg-amber-500"></span> Modo Debug — versão de testes</span>
         <label class="flex items-center gap-2 cursor-pointer">
             <input type="checkbox" id="toggleDadosTeste">
-            <span>Usar dados de teste <span class="text-gray-400">(coleções separadas, não afeta a escala real)</span></span>
+            <span>Usar dados de teste <span class="text-amber-700/70">(coleções separadas, não afeta a escala real)</span></span>
         </label>
-        <a href="./" class="text-fuchsia-300 underline hover:text-fuchsia-200">Ir para versão oficial →</a>
+        <a href="./" class="font-semibold text-amber-800 underline hover:text-amber-950">Ir para versão oficial →</a>
     </div>
 
-    <header class="max-w-[1600px] mx-auto mb-6 flex flex-col md:flex-row justify-between items-center gap-4">
-        <div class="text-center md:text-left">
-            <h1 class="text-2xl md:text-3xl font-black italic text-yellow-500 tracking-tighter uppercase leading-none">Ministério de Áudio</h1>
-            <p class="text-[10px] tracking-[0.4em] text-gray-400 uppercase">Bola de Neve Sorocaba</p>
+    <header class="max-w-[1600px] mx-auto mb-8 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div class="flex items-center gap-3">
+            <div class="w-11 h-11 rounded-xl bg-indigo-600 flex items-center justify-center shadow-md shadow-indigo-200">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 18v-6a9 9 0 0118 0v6"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 19a2 2 0 01-2 2h-1a2 2 0 01-2-2v-3a2 2 0 012-2h3v5zM3 19a2 2 0 002 2h1a2 2 0 002-2v-3a2 2 0 00-2-2H3v5z"/></svg>
+            </div>
+            <div class="text-center md:text-left">
+                <h1 class="text-xl md:text-2xl font-extrabold text-slate-900 tracking-tight leading-tight">Ministério de Áudio</h1>
+                <p class="text-xs font-medium text-slate-500">Bola de Neve Sorocaba · Escala de serviço</p>
+            </div>
         </div>
-        
+
         <!-- Legenda de Cores -->
-        <div class="flex flex-wrap items-center gap-3 bg-white/5 px-4 py-2 rounded-full border border-white/10 text-xs">
+        <div class="flex flex-wrap items-center gap-4 bg-white px-4 py-2 rounded-full border border-slate-200 shadow-sm text-xs font-medium text-slate-600">
             <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Pendente</span>
             <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Confirmado</span>
             <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-red-500"></span> Vago</span>
@@ -91,32 +137,37 @@
 
     <main class="max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div class="lg:col-span-7 xl:col-span-8 flex flex-col gap-6">
-            <div class="glass-card p-4 shadow-2xl">
-                <div class="flex justify-between items-center mb-2 px-1">
-                    <span class="text-[11px] text-gray-400 font-semibold italic">💡 Dica: Clique em uma escala no calendário para confirmar sua presença.</span>
+            <div class="glass-card p-5">
+                <div class="flex justify-between items-center mb-3 px-1">
+                    <span class="text-xs text-slate-500 flex items-center gap-1.5">
+                        <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        Clique em uma escala no calendário para confirmar sua presença.
+                    </span>
                 </div>
                 <div id="calendar"></div>
             </div>
-            
+
             <div class="glass-card p-5">
-                <h2 id="tituloStats" class="text-xs font-bold mb-4 text-yellow-500 uppercase tracking-widest flex items-center gap-2">
-                    Participações no Mês 📊
+                <h2 id="tituloStats" class="card-title mb-4">
+                    <span class="card-icon bg-indigo-50 text-indigo-600">📊</span> Participações no Mês
                 </h2>
                 <div id="listaStats" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3"></div>
             </div>
         </div>
 
         <div class="lg:col-span-5 xl:col-span-4 flex flex-col gap-6">
-            <div class="glass-card p-5 flex flex-col h-[400px]">
-                <h2 class="text-sm font-bold mb-4 text-yellow-500 uppercase tracking-widest flex justify-between">
-                    Próximas Escalas <span>📅</span>
+            <div class="glass-card p-5 flex flex-col h-[420px]">
+                <h2 class="card-title mb-4">
+                    <span class="card-icon bg-indigo-50 text-indigo-600">📅</span> Próximas Escalas
                 </h2>
-                <div id="listaEscalas" class="flex-grow overflow-y-auto custom-scroll space-y-3 pr-2"></div>
+                <div id="listaEscalas" class="flex-grow overflow-y-auto custom-scroll space-y-2.5 pr-2"></div>
             </div>
 
             <div class="grid grid-cols-1 gap-6">
                 <div class="glass-card p-5">
-                    <h2 class="text-sm font-bold mb-4 text-blue-400 uppercase tracking-widest">Agendar Culto ➕</h2>
+                    <h2 class="card-title mb-4">
+                        <span class="card-icon bg-sky-50 text-sky-600">➕</span> Agendar Culto
+                    </h2>
                     <div class="space-y-3">
                         <div class="grid grid-cols-2 gap-2">
                             <input id="dataCulto" type="date">
@@ -129,116 +180,122 @@
                         </div>
                         <input id="tituloEscala" type="text" placeholder="Nome da Escala (Ex: Santa Ceia)">
                         <select id="selectMembros"></select>
-                        <button id="btnEscala" class="w-full bg-blue-600 py-2 rounded-lg font-black hover:bg-blue-500 transition-all text-sm uppercase">Salvar Escala</button>
+                        <button id="btnEscala" class="btn btn-primary w-full">Salvar Escala</button>
                     </div>
                 </div>
 
                 <div class="glass-card p-5">
-                    <h2 class="text-sm font-bold mb-4 text-green-400 uppercase tracking-widest">Equipe 👥</h2>
+                    <h2 class="card-title mb-4">
+                        <span class="card-icon bg-emerald-50 text-emerald-600">👥</span> Equipe
+                    </h2>
                     <div class="space-y-2 mb-4">
                         <input id="nomeMembro" type="text" placeholder="Novo integrante" class="text-sm">
                         <div class="grid grid-cols-2 gap-2">
                             <input id="telefoneMembro" type="tel" placeholder="WhatsApp (15) 99999-9999" class="text-sm">
                             <input id="emailMembro" type="email" placeholder="E-mail" class="text-sm">
                         </div>
-                        <button id="btnMembro" class="w-full bg-green-600 py-2 rounded-lg font-bold hover:bg-green-500 text-xs uppercase">Adicionar Integrante</button>
+                        <button id="btnMembro" class="btn btn-success w-full">Adicionar Integrante</button>
                     </div>
                     <ul id="listaMembros" class="space-y-2 max-h-[220px] overflow-y-auto custom-scroll pr-2"></ul>
                 </div>
 
                 <div class="glass-card p-5">
-                    <h2 class="text-sm font-bold mb-3 text-fuchsia-400 uppercase tracking-widest flex justify-between items-center">
-                        Notificações 🔔
-                        <button onclick="window.abrirConfigNotificacoes()" class="bg-white/10 hover:bg-white/20 px-3 py-1 rounded-lg text-[10px] font-bold normal-case tracking-normal text-white">⚙️ Configurar</button>
+                    <h2 class="card-title mb-3 justify-between">
+                        <span class="flex items-center gap-2.5"><span class="card-icon bg-violet-50 text-violet-600">🔔</span> Notificações</span>
+                        <button onclick="window.abrirConfigNotificacoes()" class="btn btn-ghost !py-1.5 !px-3 text-xs">⚙️ Configurar</button>
                     </h2>
-                    <div id="resumoNotificacoes" class="flex flex-wrap gap-2 text-[10px] mb-3"></div>
-                    <p class="text-[10px] text-gray-400 uppercase font-bold mb-2">Avisos a enviar</p>
+                    <div id="resumoNotificacoes" class="flex flex-wrap gap-2 text-[10px] mb-4"></div>
+                    <p class="field-label mb-2">Avisos a enviar</p>
                     <div id="listaAvisos" class="space-y-2 max-h-[220px] overflow-y-auto custom-scroll pr-2"></div>
-                    <button onclick="window.enviarResumoGrupo()" class="mt-3 w-full bg-emerald-700/60 hover:bg-emerald-600 py-2 rounded-lg font-bold text-[10px] uppercase">📋 Enviar resumo no grupo do WhatsApp</button>
+                    <button onclick="window.enviarResumoGrupo()" class="btn mt-4 w-full bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100">📋 Enviar resumo no grupo do WhatsApp</button>
                 </div>
             </div>
         </div>
     </main>
 
+    <footer class="max-w-[1600px] mx-auto mt-10 mb-2 text-center text-xs text-slate-400">
+        Ministério de Áudio · Bola de Neve Sorocaba
+    </footer>
+
     <!-- Modal Editar Responsável -->
-    <div id="modalEditar" class="modal-hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-        <div class="glass-card p-6 w-full max-w-sm border-yellow-500/30 h-auto text-center">
-            <h2 class="text-yellow-500 font-bold mb-4 uppercase tracking-widest text-sm">Alterar Responsável</h2>
+    <div id="modalEditar" class="modal-hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div class="glass-card p-6 w-full max-w-sm h-auto shadow-2xl">
+            <h2 class="card-title mb-5"><span class="card-icon bg-indigo-50 text-indigo-600">✏️</span> Alterar Responsável</h2>
             <input type="hidden" id="editEscalaId">
             <div class="mb-6 text-left">
-                <label class="text-[10px] text-gray-400 uppercase mb-2 block">Selecione o Integrante:</label>
+                <label class="field-label">Selecione o integrante</label>
                 <select id="editSelectMembro"></select>
             </div>
             <div class="flex gap-2">
-                <button onclick="window.fecharModal()" class="flex-1 bg-white/10 py-2 rounded-lg font-bold text-xs uppercase hover:bg-white/20">Cancelar</button>
-                <button id="btnSalvarEdicao" class="flex-1 bg-yellow-500 py-2 rounded-lg font-bold text-xs uppercase text-black hover:bg-yellow-400">Salvar</button>
+                <button onclick="window.fecharModal()" class="btn btn-ghost flex-1">Cancelar</button>
+                <button id="btnSalvarEdicao" class="btn btn-primary flex-1">Salvar</button>
             </div>
         </div>
     </div>
 
     <!-- Modal Editar Membro -->
-    <div id="modalMembro" class="modal-hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-        <div class="glass-card p-6 w-full max-w-sm border-green-500/30 h-auto">
-            <h2 class="text-green-400 font-bold mb-4 uppercase tracking-widest text-sm text-center">Editar Integrante</h2>
+    <div id="modalMembro" class="modal-hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div class="glass-card p-6 w-full max-w-sm h-auto shadow-2xl">
+            <h2 class="card-title mb-5"><span class="card-icon bg-emerald-50 text-emerald-600">👤</span> Editar Integrante</h2>
             <input type="hidden" id="editMembroId">
             <input type="hidden" id="editMembroNomeAntigo">
             <div class="space-y-3 mb-6">
                 <div>
-                    <label class="text-[10px] text-gray-400 uppercase mb-1 block">Nome</label>
+                    <label class="field-label">Nome</label>
                     <input id="editMembroNome" type="text">
                 </div>
                 <div>
-                    <label class="text-[10px] text-gray-400 uppercase mb-1 block">Telefone / WhatsApp</label>
+                    <label class="field-label">Telefone / WhatsApp</label>
                     <input id="editMembroTelefone" type="tel" placeholder="(15) 99999-9999">
                 </div>
                 <div>
-                    <label class="text-[10px] text-gray-400 uppercase mb-1 block">E-mail</label>
+                    <label class="field-label">E-mail</label>
                     <input id="editMembroEmail" type="email" placeholder="nome@email.com">
                 </div>
                 <div>
-                    <label class="text-[10px] text-gray-400 uppercase mb-1 block">Chave CallMeBot (WhatsApp automático)</label>
+                    <label class="field-label">Chave CallMeBot (WhatsApp automático)</label>
                     <input id="editMembroCallmebot" type="text" placeholder="Ex: 123456">
-                    <details class="mt-1">
-                        <summary class="cursor-pointer text-[10px] text-fuchsia-300">Como o integrante consegue a chave?</summary>
-                        <ol class="text-[10px] text-gray-400 list-decimal ml-4 mt-1 space-y-1">
-                            <li>Abrir <a href="https://www.callmebot.com/blog/free-api-whatsapp-messages/" target="_blank" class="underline text-fuchsia-300">callmebot.com</a> e salvar nos contatos o número do CallMeBot indicado lá.</li>
-                            <li>Mandar pelo WhatsApp para esse número: <code class="text-white">I allow callmebot to send me messages</code></li>
+                    <details class="mt-2">
+                        <summary class="cursor-pointer text-xs font-medium text-indigo-600">Como o integrante consegue a chave?</summary>
+                        <ol class="text-xs text-slate-500 list-decimal ml-4 mt-2 space-y-1">
+                            <li>Abrir <a href="https://www.callmebot.com/blog/free-api-whatsapp-messages/" target="_blank" class="underline text-indigo-600">callmebot.com</a> e salvar nos contatos o número do CallMeBot indicado lá.</li>
+                            <li>Mandar pelo WhatsApp para esse número: <code class="text-slate-800 bg-slate-100 px-1 rounded">I allow callmebot to send me messages</code></li>
                             <li>O bot responde com a chave (apikey). É só colar aqui.</li>
                         </ol>
                     </details>
                 </div>
             </div>
             <div class="flex gap-2">
-                <button onclick="window.fecharModalMembro()" class="flex-1 bg-white/10 py-2 rounded-lg font-bold text-xs uppercase hover:bg-white/20">Cancelar</button>
-                <button id="btnSalvarMembro" class="flex-1 bg-green-600 py-2 rounded-lg font-bold text-xs uppercase hover:bg-green-500">Salvar</button>
+                <button onclick="window.fecharModalMembro()" class="btn btn-ghost flex-1">Cancelar</button>
+                <button id="btnSalvarMembro" class="btn btn-success flex-1">Salvar</button>
             </div>
         </div>
     </div>
 
     <!-- Modal Configurar Notificações -->
-    <div id="modalConfig" class="modal-hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-        <div class="glass-card p-6 w-full max-w-lg border-fuchsia-500/30 h-auto max-h-[90vh] overflow-y-auto custom-scroll">
-            <h2 class="text-fuchsia-400 font-bold mb-4 uppercase tracking-widest text-sm text-center">Configurar Notificações</h2>
-            <div class="space-y-5 text-sm">
+    <div id="modalConfig" class="modal-hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div class="glass-card p-6 w-full max-w-lg h-auto max-h-[90vh] overflow-y-auto custom-scroll shadow-2xl">
+            <h2 class="card-title mb-5"><span class="card-icon bg-violet-50 text-violet-600">⚙️</span> Configurar Notificações</h2>
+            <div class="space-y-5 text-sm text-slate-700">
 
                 <div class="space-y-2">
-                    <label class="flex items-center gap-2 font-bold"><input type="checkbox" id="cfgWhatsAtivo"> 💬 Notificar via WhatsApp</label>
-                    <p class="text-[10px] text-gray-400">Abre o WhatsApp com a mensagem pronta para o número do integrante — é só tocar em enviar.</p>
+                    <label class="flex items-center gap-2 font-semibold text-slate-800"><input type="checkbox" id="cfgWhatsAtivo"> 💬 Notificar via WhatsApp</label>
+                    <p class="text-xs text-slate-500">Abre o WhatsApp com a mensagem pronta para o número do integrante — é só tocar em enviar.</p>
                 </div>
 
-                <div class="space-y-2">
-                    <label class="flex items-center gap-2 font-bold"><input type="checkbox" id="cfgEmailAtivo"> ✉️ Notificar via E-mail</label>
+                <div class="space-y-3">
+                    <label class="flex items-center gap-2 font-semibold text-slate-800"><input type="checkbox" id="cfgEmailAtivo"> ✉️ Notificar via E-mail</label>
                     <div>
-                        <label class="text-[10px] text-gray-400 uppercase mb-1 block">E-mails em cópia (líderes / admins) — separados por vírgula</label>
+                        <label class="field-label">E-mails em cópia (líderes / admins) — separados por vírgula</label>
                         <input id="cfgEmailsCopia" type="text" placeholder="lider@email.com, outro@email.com">
                     </div>
                     <div>
-                        <label class="text-[10px] text-gray-400 uppercase mb-1 block">Assunto do e-mail</label>
+                        <label class="field-label">Assunto do e-mail</label>
                         <input id="cfgAssunto" type="text">
                     </div>
-                    <details class="bg-black/20 rounded-lg p-3">
-                        <summary class="cursor-pointer text-[11px] font-bold text-gray-300">Envio automático por EmailJS (opcional)</summary>
-                        <p class="text-[10px] text-gray-400 my-2">Sem isso, o botão de e-mail abre seu app de e-mail com a mensagem pronta. Com uma conta gratuita em emailjs.com, o e-mail é enviado direto do site. O template do EmailJS deve usar as variáveis <code>{{to_email}}</code>, <code>{{cc}}</code>, <code>{{subject}}</code> e <code>{{message}}</code>.</p>
+                    <details class="bg-slate-50 border border-slate-200 rounded-xl p-3">
+                        <summary class="cursor-pointer text-xs font-semibold text-slate-700">Envio automático por EmailJS (opcional)</summary>
+                        <p class="text-xs text-slate-500 my-2">Sem isso, o botão de e-mail abre seu app de e-mail com a mensagem pronta. Com uma conta gratuita em emailjs.com, o e-mail é enviado direto do site. O template do EmailJS deve usar as variáveis <code>{{to_email}}</code>, <code>{{cc}}</code>, <code>{{subject}}</code> e <code>{{message}}</code>.</p>
                         <div class="grid grid-cols-1 gap-2">
                             <input id="cfgEmailjsService" type="text" placeholder="Service ID">
                             <input id="cfgEmailjsTemplate" type="text" placeholder="Template ID">
@@ -249,7 +306,7 @@
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="text-[10px] text-gray-400 uppercase mb-1 block">Lista de avisos manuais: próximos</label>
+                        <label class="field-label">Lista de avisos manuais: próximos</label>
                         <select id="cfgAntecedencia">
                             <option value="1">1 dia</option>
                             <option value="2">2 dias</option>
@@ -259,29 +316,29 @@
                         </select>
                     </div>
                     <div>
-                        <label class="text-[10px] text-gray-400 uppercase mb-1 block">Link do site na mensagem</label>
+                        <label class="field-label">Link do site na mensagem</label>
                         <input id="cfgLink" type="text">
                     </div>
                 </div>
 
-                <div class="space-y-2 bg-fuchsia-500/10 border border-fuchsia-500/30 rounded-lg p-3">
-                    <label class="flex items-center gap-2 font-bold"><input type="checkbox" id="cfgAutoAtivo"> 🤖 Envio automático</label>
-                    <p class="text-[10px] text-gray-400">Todo dia às 9h o robô envia e-mail e WhatsApp para quem está escalado. WhatsApp automático só vai para quem tem a chave CallMeBot cadastrada (✏️ no integrante).</p>
+                <div class="space-y-2 bg-indigo-50 border border-indigo-100 rounded-xl p-4">
+                    <label class="flex items-center gap-2 font-semibold text-slate-800"><input type="checkbox" id="cfgAutoAtivo"> 🤖 Envio automático</label>
+                    <p class="text-xs text-slate-600">Todo dia às 9h o robô envia e-mail e WhatsApp para quem está escalado. WhatsApp automático só vai para quem tem a chave CallMeBot cadastrada (✏️ no integrante).</p>
                     <div>
-                        <label class="text-[10px] text-gray-400 uppercase mb-1 block">Lembretes (dias antes, separados por vírgula)</label>
+                        <label class="field-label">Lembretes (dias antes, separados por vírgula)</label>
                         <input id="cfgLembretes" type="text" placeholder="7, 3">
                     </div>
                 </div>
 
                 <div>
-                    <label class="text-[10px] text-gray-400 uppercase mb-1 block">Mensagem</label>
+                    <label class="field-label">Mensagem</label>
                     <textarea id="cfgMensagem" rows="5"></textarea>
-                    <p class="text-[10px] text-gray-500 mt-1">Variáveis: {nome} {data} {diaSemana} {tipo} {titulo} {link}</p>
+                    <p class="text-xs text-slate-400 mt-1">Variáveis: {nome} {data} {diaSemana} {tipo} {titulo} {link}</p>
                 </div>
             </div>
             <div class="flex gap-2 mt-6">
-                <button onclick="window.fecharConfig()" class="flex-1 bg-white/10 py-2 rounded-lg font-bold text-xs uppercase hover:bg-white/20">Cancelar</button>
-                <button id="btnSalvarConfig" class="flex-1 bg-fuchsia-600 py-2 rounded-lg font-bold text-xs uppercase hover:bg-fuchsia-500">Salvar</button>
+                <button onclick="window.fecharConfig()" class="btn btn-ghost flex-1">Cancelar</button>
+                <button id="btnSalvarConfig" class="btn btn-primary flex-1">Salvar</button>
             </div>
         </div>
     </div>
@@ -389,9 +446,9 @@
                 .sort((a, b) => b[1] - a[1])
                 .forEach(([nome, qtd]) => {
                     listaStats.innerHTML += `
-                        <div class="bg-white/5 border border-white/10 p-2 rounded-lg flex flex-col items-center">
-                            <span class="text-[10px] font-bold text-gray-400 truncate w-full text-center uppercase">${esc(nome.split(' ')[0])}</span>
-                            <span class="text-lg font-black text-yellow-500">${qtd}</span>
+                        <div class="bg-slate-50 border border-slate-200 p-3 rounded-xl flex flex-col items-center">
+                            <span class="text-[11px] font-semibold text-slate-500 truncate w-full text-center">${esc(nome.split(' ')[0])}</span>
+                            <span class="text-2xl font-extrabold text-indigo-600 leading-tight">${qtd}</span>
                         </div>
                     `;
                 });
@@ -432,17 +489,17 @@
                 const contatos = [
                     m.telefone ? `<span class="truncate">📱 ${esc(formatarTel(m.telefone))}</span>` : '',
                     m.email ? `<span class="truncate">✉️ ${esc(m.email)}</span>` : '',
-                    m.callmebotKey ? `<span class="text-fuchsia-300" title="WhatsApp automático ativado">🤖 auto</span>` : ''
+                    m.callmebotKey ? `<span class="text-violet-600 font-medium" title="WhatsApp automático ativado">🤖 auto</span>` : ''
                 ].filter(Boolean).join('');
                 listaM.innerHTML += `
-                    <li class="bg-white/5 p-2 rounded-lg flex justify-between items-center border border-white/5">
+                    <li class="bg-slate-50 px-3 py-2 rounded-xl flex justify-between items-center border border-slate-200">
                         <div class="overflow-hidden mr-2 min-w-0">
-                            <span class="text-[11px] font-semibold truncate block">${esc(m.nome)}</span>
-                            <div class="flex flex-wrap gap-x-3 text-[9px] text-gray-400">${contatos || '<span class="italic text-gray-500">sem contato cadastrado</span>'}</div>
+                            <span class="text-xs font-semibold text-slate-800 truncate block">${esc(m.nome)}</span>
+                            <div class="flex flex-wrap gap-x-3 text-[10px] text-slate-500">${contatos || '<span class="italic text-slate-400">sem contato cadastrado</span>'}</div>
                         </div>
                         <div class="flex items-center gap-2 shrink-0">
-                            <button onclick="window.editarMembro('${m.id}')" class="text-yellow-500 hover:text-yellow-400 text-[10px] font-bold" title="Editar">✏️</button>
-                            <button onclick="window.removerMembro('${m.id}')" class="text-red-500 hover:text-red-400" title="Excluir"><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"/></svg></button>
+                            <button onclick="window.editarMembro('${m.id}')" class="w-6 h-6 rounded-md hover:bg-slate-200 text-[11px] flex items-center justify-center" title="Editar">✏️</button>
+                            <button onclick="window.removerMembro('${m.id}')" class="w-6 h-6 rounded-md text-red-500 hover:bg-red-50 flex items-center justify-center" title="Excluir"><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"/></svg></button>
                         </div>
                     </li>`;
                 selectM.innerHTML += `<option value="${esc(m.nome)}">${esc(m.nome)}</option>`;
@@ -478,18 +535,18 @@
                 // Cores por estado
                 let borderColorClass = "border-amber-500";
                 let eventBgColor = "#d97706"; // Âmbar (Pendente)
-                let statusBadge = `<span class="text-[9px] bg-amber-500/20 text-amber-300 font-bold px-1.5 py-0.5 rounded">⏳ Pendente</span>`;
+                let statusBadge = `<span class="text-[9px] bg-amber-100 text-amber-700 font-semibold px-1.5 py-0.5 rounded-md">⏳ Pendente</span>`;
                 let iconTitle = "⏳";
 
                 if (isVago) {
                     borderColorClass = "border-red-500";
                     eventBgColor = "#ef4444"; // Vermelho (Vago)
-                    statusBadge = `<span class="text-[9px] bg-red-500/20 text-red-400 font-bold px-1.5 py-0.5 rounded">VAGO</span>`;
+                    statusBadge = `<span class="text-[9px] bg-red-100 text-red-700 font-semibold px-1.5 py-0.5 rounded-md">VAGO</span>`;
                     iconTitle = "❌";
                 } else if (isConfirmado) {
                     borderColorClass = "border-emerald-500";
                     eventBgColor = "#059669"; // Verde Esmeralda (Confirmado)
-                    statusBadge = `<span class="text-[9px] bg-emerald-500/20 text-emerald-300 font-bold px-1.5 py-0.5 rounded">✅ Confirmado</span>`;
+                    statusBadge = `<span class="text-[9px] bg-emerald-100 text-emerald-700 font-semibold px-1.5 py-0.5 rounded-md">✅ Confirmado</span>`;
                     iconTitle = "✅";
                 }
 
@@ -497,25 +554,25 @@
                     const dataF = dataEscala.toLocaleDateString('pt-BR');
                     const respJs = esc(String(data.responsavel).replace(/\\/g, '\\\\').replace(/'/g, "\\'"));
                     listaE.innerHTML += `
-                        <div class="bg-white/5 p-3 rounded-xl border-l-4 ${borderColorClass} flex justify-between items-center transition-all hover:bg-white/10">
+                        <div class="bg-slate-50 p-3 rounded-xl border-l-4 ${borderColorClass} flex justify-between items-center transition-all hover:bg-slate-100">
                             <div class="overflow-hidden mr-2">
                                 <div class="flex items-center gap-2 mb-0.5">
-                                    <p class="text-[9px] text-gray-400 font-bold uppercase tracking-tighter">${dataF} • ${esc(data.tipo)}</p>
+                                    <p class="text-[10px] text-slate-500 font-semibold">${dataF} • ${esc(data.tipo)}</p>
                                     ${statusBadge}
                                 </div>
-                                <h3 class="text-sm font-black truncate ${isVago ? 'text-red-500' : 'text-white'}">${esc(data.responsavel)}</h3>
-                                <p class="text-[10px] italic text-gray-500 truncate">${esc(data.titulo || '')}</p>
+                                <h3 class="text-sm font-bold truncate ${isVago ? 'text-red-600' : 'text-slate-800'}">${esc(data.responsavel)}</h3>
+                                <p class="text-[11px] text-slate-500 truncate">${esc(data.titulo || '')}</p>
                             </div>
                             <div class="flex items-center gap-1 shrink-0">
                                 ${!isVago ? `
                                     <button onclick="window.alternarConfirmacao('${d.id}', '${respJs}', ${isConfirmado})" 
-                                            class="${isConfirmado ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-300'} p-1.5 rounded text-[9px] font-bold">
+                                            class="${isConfirmado ? 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100' : 'bg-emerald-600 text-white hover:bg-emerald-700'} px-2 py-1.5 rounded-md text-[10px] font-semibold">
                                         ${isConfirmado ? 'DESFAZER' : 'CONFIRMAR'}
                                     </button>
-                                    <button onclick="window.abrirAviso('${d.id}')" class="bg-fuchsia-500/20 text-fuchsia-300 p-1.5 rounded text-[9px] font-bold" title="Enviar aviso">🔔</button>
+                                    <button onclick="window.abrirAviso('${d.id}')" class="bg-white border border-slate-200 hover:bg-violet-50 px-1.5 py-1 rounded-md text-[10px]" title="Enviar aviso">🔔</button>
                                 ` : ''}
-                                <button onclick="window.editarEscala('${d.id}', '${respJs}')" class="bg-yellow-500/20 text-yellow-500 p-1.5 rounded text-[9px] font-bold">EDIT</button>
-                                <button onclick="window.remover('${d.id}')" class="bg-red-500/20 text-red-500 p-1.5 rounded text-[9px] font-bold uppercase">X</button>
+                                <button onclick="window.editarEscala('${d.id}', '${respJs}')" class="bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 px-2 py-1.5 rounded-md text-[10px] font-semibold">EDIT</button>
+                                <button onclick="window.remover('${d.id}')" class="bg-white border border-red-200 text-red-600 hover:bg-red-50 px-2 py-1.5 rounded-md text-[10px] font-semibold uppercase">X</button>
                             </div>
                         </div>`;
                 }
@@ -544,7 +601,7 @@
             const lista = document.getElementById('listaAvisos');
             if (!resumo || !lista) return;
 
-            const chip = (ativo, txt) => `<span class="px-2 py-1 rounded-full border ${ativo ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300' : 'bg-white/5 border-white/10 text-gray-500 line-through'}">${txt}</span>`;
+            const chip = (ativo, txt) => `<span class="px-2 py-1 rounded-full border ${ativo ? 'bg-emerald-50 border-emerald-200 text-emerald-700 font-medium' : 'bg-slate-50 border-slate-200 text-slate-400 line-through'}">${txt}</span>`;
             const emailAuto = configNotif.emailjsServiceId && configNotif.emailjsTemplateId && configNotif.emailjsPublicKey;
             resumo.innerHTML = chip(configNotif.whatsappAtivo, '💬 WhatsApp')
                 + chip(configNotif.emailAtivo, `✉️ E-mail ${emailAuto ? '(automático)' : '(manual)'}`)
@@ -558,11 +615,11 @@
             });
 
             if (!configNotif.whatsappAtivo && !configNotif.emailAtivo) {
-                lista.innerHTML = `<p class="text-[11px] text-gray-500 italic">Notificações desativadas. Ative em ⚙️ Configurar.</p>`;
+                lista.innerHTML = `<p class="text-xs text-slate-400 italic">Notificações desativadas. Ative em ⚙️ Configurar.</p>`;
                 return;
             }
             if (!proximas.length) {
-                lista.innerHTML = `<p class="text-[11px] text-gray-500 italic">Nenhuma escala nos próximos ${configNotif.antecedenciaDias} dia(s).</p>`;
+                lista.innerHTML = `<p class="text-xs text-slate-400 italic">Nenhuma escala nos próximos ${configNotif.antecedenciaDias} dia(s).</p>`;
                 return;
             }
             lista.innerHTML = proximas.map(e => {
@@ -573,15 +630,15 @@
                     e['autoWhats' + n + 'd'] === e.responsavel ? `💬${n}d` : ''
                 ]).filter(Boolean);
                 const btnW = configNotif.whatsappAtivo
-                    ? `<button onclick="window.notificarWhats('${e.id}')" ${m.telefone ? '' : 'disabled title="Sem telefone cadastrado"'} class="px-2 py-1 rounded text-[9px] font-bold ${m.telefone ? 'bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30' : 'bg-white/5 text-gray-600 cursor-not-allowed'}">💬${e.avisadoWhatsEm ? ' ✓' : ''}</button>` : '';
+                    ? `<button onclick="window.notificarWhats('${e.id}')" ${m.telefone ? '' : 'disabled title="Sem telefone cadastrado"'} class="px-2 py-1 rounded text-[9px] font-bold ${m.telefone ? 'bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100' : 'bg-slate-100 text-slate-400 cursor-not-allowed'}">💬${e.avisadoWhatsEm ? ' ✓' : ''}</button>` : '';
                 const btnE = configNotif.emailAtivo
-                    ? `<button onclick="window.notificarEmail('${e.id}')" ${m.email ? '' : 'disabled title="Sem e-mail cadastrado"'} class="px-2 py-1 rounded text-[9px] font-bold ${m.email ? 'bg-sky-500/20 text-sky-300 hover:bg-sky-500/30' : 'bg-white/5 text-gray-600 cursor-not-allowed'}">✉️${e.avisadoEmailEm ? ' ✓' : ''}</button>` : '';
+                    ? `<button onclick="window.notificarEmail('${e.id}')" ${m.email ? '' : 'disabled title="Sem e-mail cadastrado"'} class="px-2 py-1 rounded text-[9px] font-bold ${m.email ? 'bg-sky-50 border border-sky-200 text-sky-700 hover:bg-sky-100' : 'bg-slate-100 text-slate-400 cursor-not-allowed'}">✉️${e.avisadoEmailEm ? ' ✓' : ''}</button>` : '';
                 return `
-                    <div class="bg-white/5 p-2 rounded-lg flex justify-between items-center border border-white/5">
+                    <div class="bg-slate-50 px-3 py-2 rounded-xl flex justify-between items-center border border-slate-200">
                         <div class="overflow-hidden mr-2 min-w-0">
-                            <p class="text-[11px] font-semibold truncate">${esc(e.responsavel)} ${e.confirmado ? '<span class="text-emerald-400">✅</span>' : ''}</p>
-                            <p class="text-[9px] text-gray-400">${dataF} • ${esc(e.tipo)}</p>
-                            ${autoEnviados.length ? `<p class="text-[9px] text-fuchsia-300" title="Lembretes automáticos já enviados">🤖 ${autoEnviados.join(' ')}</p>` : ''}
+                            <p class="text-xs font-semibold text-slate-800 truncate">${esc(e.responsavel)} ${e.confirmado ? '<span class="text-emerald-600">✅</span>' : ''}</p>
+                            <p class="text-[10px] text-slate-500">${dataF} • ${esc(e.tipo)}</p>
+                            ${autoEnviados.length ? `<p class="text-[10px] text-violet-600" title="Lembretes automáticos já enviados">🤖 ${autoEnviados.join(' ')}</p>` : ''}
                         </div>
                         <div class="flex gap-1 shrink-0">${btnW}${btnE}</div>
                     </div>`;
